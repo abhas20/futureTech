@@ -1,14 +1,20 @@
-import express from "express"
-import isAuth from "../middlewares/isAuth.js"
-import { getCurrentUser, UpdateProfile } from "../controllers/userController.js"
-import upload from "../middlewares/multer.js"
+import express from "express";
+import isAuth from "../middlewares/isAuth.js";
+import upload from "../middlewares/multer.js";
+import { 
+    getCurrentUser, 
+    UpdateProfile, 
+    updateProgress, 
+    getLeaderboard 
+} from "../controllers/userController.js";
 
+const userRouter = express.Router();
 
+userRouter.get("/currentuser", isAuth, getCurrentUser);
+userRouter.post("/updateprofile", isAuth, upload.single("photoUrl"), UpdateProfile);
 
-let userRouter = express.Router()
+// Gamification routes
+userRouter.post("/progress", isAuth, updateProgress);
+userRouter.get("/leaderboard", getLeaderboard);
 
-userRouter.get("/currentuser",isAuth,getCurrentUser)
-userRouter.post("/updateprofile",isAuth,upload.single("photoUrl"),UpdateProfile)
-
-
-export default userRouter
+export default userRouter;

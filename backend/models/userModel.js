@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -51,6 +52,13 @@ const userSchema = new mongoose.Schema(
       twitter: { type: String, default: null },
       personalWebsite: { type: String, default: null },
     },
+    
+    
+    // Gamification Fields
+    xp: { type: Number, default: 0 },
+    rank: { type: String, default: "Novice" },
+    completedLectures: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Lecture' }],
+
   },
   { timestamps: true }
 );
