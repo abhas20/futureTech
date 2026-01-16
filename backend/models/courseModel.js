@@ -1,52 +1,56 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const courseSchema = new mongoose.Schema({
-    title:{
-        type:String,
-        required:true
+    title: {
+        type: String,
+        required: true
     },
-    subTitle:{
-        type:String
+    subTitle: {
+        type: String
     },
-    description:{
-        type:String
+    description: {
+        type: String
     },
-    category:{
-        type:String,
-        required:true
+    category: {
+        type: String,
+        required: true
     },
-    level:{
-        type:String,
-        enum:['Beginner','Intermediate','Advanced']
+    level: {
+        type: String,
+        enum: ['Beginner', 'Intermediate', 'Advanced']
     },
-    price:{
-        type:Number
+    price: {
+        type: Number
     },
-    thumbnail:{
-        type:String
+    thumbnail: {
+        type: String
     },
-    enrolledStudents:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
+    enrolledStudents: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }],
-    lectures:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Lecture"
-    }],
-    creator:{
-         type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
+    enrolledCount: {
+        type: Number,
+        default: 0
     },
-    isPublished:{
-     type:Boolean,
-     default:false
+    lectures: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Lecture"
+    }],
+    creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
+    isPublished: {
+        type: Boolean,
+        default: false
     },
     reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review'
-        }],
-},{timestamps:true})
+    }]
+}, { timestamps: true });
 
-const Course = mongoose.model("Course",courseSchema)
+const Course = mongoose.model("Course", courseSchema);
 
-export default Course
+export default Course;

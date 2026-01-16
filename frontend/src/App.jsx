@@ -8,10 +8,11 @@ import ForgotPassword from './pages/ForgotPassword'
 import getCurrentUser from './customHooks/getCurrentUser'
 import { useSelector } from 'react-redux'
 import Profile from './pages/Profile'
+import AllCourses from "./pages/AllCourses"; 
 import EditProfile from './pages/EditProfile'
 import Dashboard from './pages/admin/Dashboard'
 import Courses from './pages/admin/Courses'
-import AllCouses from './pages/AllCouses'
+import AllCouses from './pages/AllCourses'
 import AddCourses from './pages/admin/AddCourses'
 import CreateCourse from './pages/admin/CreateCourse'
 import CreateLecture from './pages/admin/CreateLecture'
@@ -56,7 +57,7 @@ function App() {
         />
         <Route
           path="/allcourses"
-          element={userData ? <AllCouses /> : <Navigate to={"/signup"} />}
+          element={userData ? <AllCourses /> : <Navigate to={"/signup"} />}
         />
         <Route
           path="/viewcourse/:courseId"
