@@ -12,7 +12,7 @@ const getCouseData = () => {
   useEffect(()=>{
     const getAllPublishedCourse = async () => {
       try {
-        const result = await axios.get(serverUrl + "/api/course/getpublishedcoures" , {withCredentials:true})
+        const result = await axios.get(serverUrl + "/api/course/getpublishedcourses" , {withCredentials:true})
         console.log(result.data)
         dispatch(setCourseData(result.data))
         

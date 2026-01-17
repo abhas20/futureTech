@@ -10,7 +10,10 @@ import {
   FaFilePdf,
   FaArrowLeft,
   FaEye,
-  FaClock
+  FaClock,
+  FaChartLine,
+  FaChevronRight,
+  FaInfoCircle,
 } from "react-icons/fa";
 import Webcam from "react-webcam";
 import axios from "axios";
@@ -24,7 +27,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid,
+  Area,
+  AreaChart,
 } from "recharts";
 
 function ViewLecture() {
@@ -36,62 +41,63 @@ function ViewLecture() {
   const { courseData } = useSelector((state) => state.course);
   const { userData } = useSelector((state) => state.user);
 
-  // State for the selected course and lecture
+  // State
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedLecture, setSelectedLecture] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lectures, setLectures] = useState([]);
-  
+
   const [viewMode, setViewMode] = useState("video");
   const [analytics, setAnalytics] = useState(null);
   const [attentionScore, setAttentionScore] = useState(null);
   const [calibrating, setCalibrating] = useState(true);
   const [autoPaused, setAutoPaused] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
+
+  // Attention Logic State
   const [lowCount, setLowCount] = useState(0);
   const [highCount, setHighCount] = useState(0);
   const attentionActiveRef = useRef(false);
   const [attentionActive, setAttentionActive] = useState(false);
+
+  // Refs
   const mediaRef = useRef(null);
   const webcamRef = useRef(null);
   const watchedSecondsRef = useRef(new Set());
   const lastSecondRef = useRef(-1);
   const viewSentRef = useRef(false);
-  
-  // ✅ FIX: Ref to prevent overlapping API calls (Reduces Lag)
   const isSendingFrameRef = useRef(false);
+
   const [downloadLoading, setDownloadLoading] = useState({
     video: false,
     audio: false,
-    pdf: false
+    pdf: false,
   });
 
-  // Fetch course data on component mount
+  // Fetch Data
   useEffect(() => {
     const fetchCourseData = async () => {
       setLoading(true);
       try {
-        // Try to get course from Redux first
-        const courseFromRedux = courseData?.find((course) => course._id === courseId);
-        
-        // CHECK: Ensure creator is populated (is an object, not just an ID string)
-        if (courseFromRedux && typeof courseFromRedux.creator === 'object') {
+        const courseFromRedux = courseData?.find(
+          (course) => course._id === courseId,
+        );
+
+        if (courseFromRedux && typeof courseFromRedux.creator === "object") {
           setSelectedCourse(courseFromRedux);
           setLectures(courseFromRedux.lectures || []);
           setSelectedLecture(courseFromRedux.lectures?.[0] || null);
           setLoading(false);
         } else {
-          // If Redux is missing data or creator is just an ID, fetch from API
           const response = await axios.get(
             `${serverUrl}/api/course/getcourse/${courseId}`,
-            { withCredentials: true }
+            { withCredentials: true },
           );
           setSelectedCourse(response.data);
           setLectures(response.data.lectures || []);
           setSelectedLecture(response.data.lectures?.[0] || null);
           setLoading(false);
         }
-        
       } catch (error) {
         console.error("Failed to fetch course data:", error);
         toast.error("Failed to load course");
@@ -99,19 +105,16 @@ function ViewLecture() {
       }
     };
 
-    if (courseId) {
-      fetchCourseData();
-    }
+    if (courseId) fetchCourseData();
   }, [courseId, courseData]);
 
-  // Fetch analytics when lecture changes
+  // Analytics Fetch
   useEffect(() => {
     if (!selectedLecture?._id) return;
-    
     watchedSecondsRef.current.clear();
     lastSecondRef.current = -1;
     viewSentRef.current = false;
-    
+
     axios
       .get(`${serverUrl}/api/analytics/lecture/${selectedLecture._id}`, {
         withCredentials: true,
@@ -120,22 +123,18 @@ function ViewLecture() {
       .catch(() => setAnalytics(null));
   }, [selectedLecture]);
 
-  // Send frame for attention tracking
+  // Frame Sending Logic
   const sendFrame = async () => {
     if (viewMode === "audio") return;
     if (!webcamRef.current || !mediaRef.current) return;
     if (!selectedLecture?._id) return;
     if (mediaRef.current.paused || mediaRef.current.ended) return;
-    
-    // ✅ Skip if video is buffering or not ready
     if (mediaRef.current.readyState < 2) return;
-
-    // ✅ FIX: Prevent stacking requests if network is slow
     if (isSendingFrameRef.current) return;
+
     isSendingFrameRef.current = true;
 
     try {
-      // ✅ Add timeout to prevent hanging
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -146,34 +145,28 @@ function ViewLecture() {
       }
 
       const blob = await fetch(imageSrc).then((res) => res.blob());
-      if (!blob || blob.size === 0) {
-        clearTimeout(timeoutId);
-        return;
-      }
-
       const form = new FormData();
       form.append("frame", blob, `frame-${Date.now()}.jpg`);
       form.append("lectureId", selectedLecture._id);
 
       const res = await axios.post(`${serverUrl}/api/attention/frame`, form, {
         withCredentials: true,
-        signal: controller.signal
+        signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       const temporal = res.data.temporal;
 
       if (!temporal) return;
-      
+
       if (!temporal.calibrated) {
         setCalibrating(true);
         return;
       }
-      
+
       setCalibrating(false);
       setAttentionScore(temporal.attention ?? null);
-      
-      // Only send analytics if attention score is valid
+
       if (temporal.attention !== null && temporal.attention !== undefined) {
         await axios.post(
           `${serverUrl}/api/analytics/attention`,
@@ -182,9 +175,9 @@ function ViewLecture() {
             t: Math.floor(mediaRef.current.currentTime),
             score: temporal.attention,
           },
-          { withCredentials: true }
+          { withCredentials: true },
         );
-        
+
         if (temporal.state === "NOT_ATTENTIVE") {
           setLowCount((c) => c + 1);
           setHighCount(0);
@@ -194,16 +187,13 @@ function ViewLecture() {
         }
       }
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.error("Frame error:", err);
-      }
+      if (err.name !== "AbortError") console.error("Frame error:", err);
     } finally {
-      // Release lock
       isSendingFrameRef.current = false;
     }
   };
 
-  // Handle time updates for watch analytics
+  // Time Update Handler
   const handleTimeUpdate = async () => {
     if (viewMode === "audio") return;
     if (!mediaRef.current) return;
@@ -215,15 +205,10 @@ function ViewLecture() {
 
     if (currentSecond === lastSecondRef.current + 1) {
       watchedSecondsRef.current.add(currentSecond);
-
       await axios.post(
         `${serverUrl}/api/analytics/watch`,
-        {
-          lectureId: selectedLecture._id,
-          delta: 1,
-          duration,
-        },
-        { withCredentials: true }
+        { lectureId: selectedLecture._id, delta: 1, duration },
+        { withCredentials: true },
       );
 
       if (
@@ -234,22 +219,21 @@ function ViewLecture() {
         await axios.post(
           `${serverUrl}/api/analytics/view`,
           { lectureId: selectedLecture._id },
-          { withCredentials: true }
+          { withCredentials: true },
         );
       }
     }
     lastSecondRef.current = currentSecond;
   };
 
-  // Handle lecture end for XP
+  // XP Handler
   const handleLectureEnd = async () => {
     if (!selectedLecture?._id) return;
-    
     try {
       const { data } = await axios.post(
         `${serverUrl}/api/user/progress`,
         { lectureId: selectedLecture._id },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       if (data.success) {
         dispatch(setUserData(data.user));
@@ -260,7 +244,7 @@ function ViewLecture() {
     }
   };
 
-  // Auto pause/resume based on attention
+  // Auto Pause Effect
   useEffect(() => {
     if (
       viewMode === "video" &&
@@ -273,6 +257,7 @@ function ViewLecture() {
     }
   }, [lowCount, viewMode]);
 
+  // Auto Resume Effect
   useEffect(() => {
     if (highCount >= 3 && autoPaused && !userPaused && mediaRef.current) {
       mediaRef.current.play();
@@ -280,220 +265,181 @@ function ViewLecture() {
     }
   }, [highCount, autoPaused, userPaused]);
 
-  // Reset attention tracking when lecture changes
+  // Reset State on Lecture Change
   useEffect(() => {
-  setCalibrating(true);
-  setLowCount(0);
-  setHighCount(0);
-  setAutoPaused(false);
-  setAttentionScore(null);
-  setViewMode("video");
+    setCalibrating(true);
+    setLowCount(0);
+    setHighCount(0);
+    setAutoPaused(false);
+    setAttentionScore(null);
+    setViewMode("video");
+    attentionActiveRef.current = false;
+    setAttentionActive(false);
+  }, [selectedLecture]);
 
-  attentionActiveRef.current = false;
-  setAttentionActive(false);   // 🔴 webcam OFF
-}, [selectedLecture]);
-
-  // Send frame every second
+  // Interval for Frames
   useEffect(() => {
     const interval = setInterval(sendFrame, 1000);
     return () => {
       clearInterval(interval);
-      isSendingFrameRef.current = false; // Reset the ref
+      isSendingFrameRef.current = false;
     };
   }, [selectedLecture, viewMode]);
 
-  // ✅ FIXED: Download Handler for ALL Types (Video, Audio, PDF)
+  // Download Handler
   const handleDownload = async (url, type, filename) => {
     if (!url) {
-      toast.error(`No ${type} available for download`);
+      toast.error(`No ${type} available`);
       return;
     }
-
-    setDownloadLoading(prev => ({ ...prev, [type]: true }));
-    
+    setDownloadLoading((prev) => ({ ...prev, [type]: true }));
     try {
-      toast.info(`Preparing ${type} download...`);
-      
+      toast.info(`Preparing ${type}...`);
       let downloadUrl = url;
-      
-      // For Cloudinary files, ensure proper download
-      if (url.includes('cloudinary.com')) {
-        if (type === 'pdf') {
-          // Already has fl_attachment from server
-          if (!url.includes('fl_attachment')) {
-            const separator = url.includes('?') ? '&' : '?';
-            downloadUrl = `${url}${separator}fl_attachment`;
-          }
-        } else if (type === 'video' || type === 'audio') {
-          // Add download parameter for media files
-          const separator = url.includes('?') ? '&' : '?';
-          downloadUrl = `${url}${separator}fl_attachment`;
-        }
+      if (url.includes("cloudinary.com")) {
+        const separator = url.includes("?") ? "&" : "?";
+        downloadUrl = `${url}${separator}fl_attachment`;
       }
 
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = downloadUrl;
-      
-      // Ensure proper file extension
-      if (type === 'pdf' && filename && !filename.toLowerCase().endsWith('.pdf')) {
-        filename = `${filename}.pdf`;
-      } else if (type === 'video' && filename && !filename.toLowerCase().endsWith('.mp4')) {
-        filename = `${filename}.mp4`;
-      } else if (type === 'audio' && filename && !filename.toLowerCase().endsWith('.mp3')) {
-        filename = `${filename}.mp3`;
-      }
-      
-      link.download = filename || `${selectedLecture?.lectureTitle?.replace(/\s+/g, '_')}_${type}`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      
+      link.download = filename || `${selectedLecture?.lectureTitle}_${type}`;
+      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      toast.success(`${type} download started!`);
-      
+      toast.success("Download started!");
     } catch (error) {
-      console.error('Download error:', error);
-      toast.error(`Failed to download ${type}`);
+      toast.error("Download failed");
     } finally {
-      setDownloadLoading(prev => ({ ...prev, [type]: false }));
+      setDownloadLoading((prev) => ({ ...prev, [type]: false }));
     }
   };
 
-  // Show loading state
+  // Loading Screen
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading lecture...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error if no course found
-  if (!selectedCourse || !selectedLecture) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FaVideo className="text-3xl text-red-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Lecture Not Found</h2>
-          <p className="text-gray-600 mb-6">
-            The requested lecture could not be found or you don't have access to it.
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 font-medium text-gray-600">
+            Loading your classroom...
           </p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition"
-          >
-            Go to Homepage
-          </button>
         </div>
       </div>
     );
   }
 
-  // Prepare graph data
+  // Graph Data Helper
   const getGraphData = () => {
     if (!analytics?.attentionTimelineAvg) return [];
-    
     const avgMap = analytics.attentionTimelineAvg || {};
-    const duration = mediaRef.current ? 
-      Math.floor(mediaRef.current.duration || 0) : 
-      Object.keys(avgMap).length;
-    
+    const duration = mediaRef.current
+      ? Math.floor(mediaRef.current.duration || 0)
+      : Object.keys(avgMap).length;
     return Array.from({ length: duration }, (_, t) => ({
       time: t,
       attention: Math.round(avgMap[t]?.avgScore || 0),
     }));
   };
-
   const graphData = getGraphData();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col lg:flex-row gap-6">
-      {/* LEFT COLUMN - Player */}
-      <div className="lg:w-2/3 flex flex-col gap-6">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate(-1)}
-                className="p-2 hover:bg-gray-100 rounded-full transition"
-              >
-                <FaArrowLeft className="text-xl" />
-              </button>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Top Navigation Bar */}
+      <div className="bg-white border-b sticky top-0 z-30 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/")}
+            className="p-2 hover:bg-gray-100 rounded-full transition text-gray-600">
+            <FaArrowLeft />
+          </button>
+          <h1 className="text-xl font-bold text-gray-900 truncate max-w-[200px] md:max-w-md">
+            {selectedCourse?.title}
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm font-bold">
+            <FaTrophy className="text-yellow-500" />
+            <span>{userData?.xp || 0} XP</span>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-bold">
+            {userData?.name?.charAt(0).toUpperCase()}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] mx-auto w-full p-4 md:p-6 gap-6">
+        {/* LEFT COLUMN - Main Content */}
+        <div className="flex-1 flex flex-col gap-6 min-w-0">
+          {/* Video/Audio Player Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Player Toolbar */}
+            <div className="p-4 border-b flex justify-between items-center bg-white">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{selectedCourse.title}</h1>
-                <p className="text-gray-600">{selectedLecture.lectureTitle}</p>
+                <h2 className="font-bold text-lg text-gray-900">
+                  {selectedLecture?.lectureTitle}
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Lecture {lectures.indexOf(selectedLecture) + 1} of{" "}
+                  {lectures.length}
+                </p>
+              </div>
+
+              {/* Modern View Toggle */}
+              <div className="bg-gray-100 p-1 rounded-lg flex gap-1">
+                <button
+                  onClick={() => setViewMode("video")}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    viewMode === "video"
+                      ? "bg-white text-black shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}>
+                  <FaVideo className="text-xs" /> Video
+                </button>
+                {selectedLecture?.audioUrl && (
+                  <button
+                    onClick={() => setViewMode("audio")}
+                    className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      viewMode === "audio"
+                        ? "bg-white text-black shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}>
+                    <FaHeadphones className="text-xs" /> Audio
+                  </button>
+                )}
               </div>
             </div>
-            {/* XP Badge */}
-            <div className="flex items-center gap-2 bg-[#4169E1] text-white px-4 py-2 rounded-full shadow-md">
-              <FaTrophy className="text-yellow-300" />
-              <span className="font-bold">{userData?.xp || 0} XP</span>
-            </div>
-          </div>
 
-          {/* Mode Toggle */}
-          <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-            <button
-              onClick={() => setViewMode("video")}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition ${
-                viewMode === "video"
-                  ? "bg-white text-black shadow"
-                  : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              <FaVideo /> Video
-            </button>
-            {selectedLecture.audioUrl && (
-              <button
-                onClick={() => setViewMode("audio")}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition ${
-                  viewMode === "audio"
-                    ? "bg-white text-black shadow"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                <FaHeadphones /> Audio
-              </button>
-            )}
-          </div>
-
-          {/* Player */}
-          <div className="aspect-video bg-black rounded-2xl overflow-hidden mb-6">
-            {viewMode === "video" && selectedLecture.videoUrl ? (
-              <video
-                ref={mediaRef}
-                src={selectedLecture.videoUrl}
-                controls
-                className="w-full h-full"
-                onPlay={() => {
-                  setUserPaused(false);
-                  attentionActiveRef.current = true;
-                  setAttentionActive(true);   // ✅ mount webcam
-                }}
-
-                onPause={() => {
-                  setUserPaused(true);
-                  attentionActiveRef.current = false;
-                  setAttentionActive(false);  // ❌ unmount webcam
-                }}
-                onEnded={handleLectureEnd}
-                onTimeUpdate={handleTimeUpdate}
-                crossOrigin="anonymous"
-              />
-            ) : viewMode === "audio" && selectedLecture.audioUrl ? (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-purple-900">
-                <div className="text-center text-white p-8">
-                  <FaHeadphones className="text-8xl mx-auto mb-6 opacity-20" />
-                  <h3 className="text-2xl font-bold mb-2">Audio Mode</h3>
-                  <p className="text-gray-300 mb-6">Listening to {selectedLecture.lectureTitle}</p>
+            {/* Media Container */}
+            <div className="relative aspect-video bg-black group">
+              {viewMode === "video" && selectedLecture?.videoUrl ? (
+                <video
+                  ref={mediaRef}
+                  src={selectedLecture.videoUrl}
+                  controls
+                  className="w-full h-full"
+                  onPlay={() => {
+                    setUserPaused(false);
+                    setAttentionActive(true);
+                  }}
+                  onPause={() => {
+                    setUserPaused(true);
+                    setAttentionActive(false);
+                  }}
+                  onEnded={handleLectureEnd}
+                  onTimeUpdate={handleTimeUpdate}
+                  crossOrigin="anonymous"
+                />
+              ) : viewMode === "audio" && selectedLecture?.audioUrl ? (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+                  <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center mb-6 animate-pulse">
+                    <FaHeadphones className="text-4xl text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-medium">Audio Mode</h3>
+                  <p className="text-gray-400 text-sm mb-6">
+                    Attention tracking paused
+                  </p>
                   <audio
                     ref={mediaRef}
                     src={selectedLecture.audioUrl}
@@ -501,299 +447,283 @@ function ViewLecture() {
                     className="w-full max-w-md"
                     onPlay={() => {
                       setUserPaused(false);
-                      attentionActiveRef.current = false;
                       setAttentionActive(false);
                     }}
                     onPause={() => setUserPaused(true)}
                     onEnded={handleLectureEnd}
                   />
                 </div>
-              </div>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center text-white">
-                  <FaVideo className="text-6xl mx-auto mb-4 opacity-50" />
-                  <p className="text-xl mb-2">Video not available</p>
-                  <p className="text-gray-400">This lecture doesn't have a video uploaded yet</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Attention Status */}
-          <div className="mb-6 space-y-2">
-            {viewMode === "video" && calibrating && (
-              <div className="text-yellow-600 text-sm bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex items-center gap-2">
-                <span>👀</span> Calibrating attention... please sit naturally.
-              </div>
-            )}
-
-            {autoPaused && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200 flex items-center gap-2">
-                <span>⏸️</span> Video paused due to low attention. Focus to resume!
-              </div>
-            )}
-
-            {attentionScore !== null &&
-              !calibrating &&
-              viewMode === "video" && (
-                <div className="text-blue-700 text-sm font-semibold flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
-                  <span>🎯</span> Current Attention Score: {attentionScore}%
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                  <div className="text-center">
+                    <FaInfoCircle className="text-4xl mx-auto mb-2 opacity-50" />
+                    <p>Media not available</p>
+                  </div>
                 </div>
               )}
-          </div>
 
-          {/* Downloads Section */}
-          <div className="mb-8 p-4 bg-gray-50 rounded-xl">
-            <h3 className="font-bold text-gray-800 mb-3">Download Materials</h3>
-            <div className="flex flex-wrap gap-3">
-              {selectedLecture.videoUrl && (
-                <button
-                  onClick={() => handleDownload(
-                    selectedLecture.videoUrl, 
-                    "video",
-                    `${selectedLecture.lectureTitle}_video.mp4`
+              {/* Attention Overlays */}
+              <div className="absolute top-4 right-4 space-y-2 pointer-events-none">
+                {viewMode === "video" && calibrating && (
+                  <div className="bg-yellow-500/90 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm animate-pulse shadow-lg flex items-center gap-2">
+                    👀 Calibrating...
+                  </div>
+                )}
+                {autoPaused && (
+                  <div className="bg-red-600/90 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm shadow-lg flex items-center gap-2">
+                    ⏸️ Auto-paused (Low Attention)
+                  </div>
+                )}
+                {attentionScore !== null &&
+                  !calibrating &&
+                  viewMode === "video" && (
+                    <div
+                      className={`text-xs px-3 py-1.5 rounded-full backdrop-blur-sm shadow-lg font-bold flex items-center gap-2 ${
+                        attentionScore > 70
+                          ? "bg-green-500/90 text-white"
+                          : "bg-orange-500/90 text-white"
+                      }`}>
+                      🎯 Focus: {attentionScore}%
+                    </div>
                   )}
+              </div>
+            </div>
+
+            {/* Action Bar */}
+            <div className="p-4 bg-gray-50 border-t flex flex-wrap gap-3">
+              {selectedLecture?.videoUrl && (
+                <button
+                  onClick={() =>
+                    handleDownload(selectedLecture.videoUrl, "video")
+                  }
                   disabled={downloadLoading.video}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  <FaVideo /> 
-                  {downloadLoading.video ? "Preparing..." : "Video"}
-                  <FaDownload className="ml-2" />
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-700 transition">
+                  {downloadLoading.video ? (
+                    <div className="animate-spin w-3 h-3 border-2 border-gray-600 rounded-full border-t-transparent" />
+                  ) : (
+                    <FaVideo />
+                  )}
+                  Download Video
                 </button>
               )}
-              {selectedLecture.audioUrl && (
+              {selectedLecture?.audioUrl && (
                 <button
-                  onClick={() => handleDownload(
-                    selectedLecture.audioUrl, 
-                    "audio",
-                    `${selectedLecture.lectureTitle}_audio.mp3`
-                  )}
+                  onClick={() =>
+                    handleDownload(selectedLecture.audioUrl, "audio")
+                  }
                   disabled={downloadLoading.audio}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
-                >
-                  <FaHeadphones />
-                  {downloadLoading.audio ? "Preparing..." : "Audio"}
-                  <FaDownload className="ml-2" />
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-700 transition">
+                  {downloadLoading.audio ? (
+                    <div className="animate-spin w-3 h-3 border-2 border-gray-600 rounded-full border-t-transparent" />
+                  ) : (
+                    <FaHeadphones />
+                  )}
+                  Download Audio
                 </button>
               )}
-              {selectedLecture.notesUrl && (
+              {selectedLecture?.notesUrl && (
                 <button
-                  onClick={() => handleDownload(
-                    selectedLecture.notesUrl, 
-                    "pdf",
-                    `${selectedLecture.lectureTitle}_notes.pdf`
-                  )}
+                  onClick={() =>
+                    handleDownload(selectedLecture.notesUrl, "pdf")
+                  }
                   disabled={downloadLoading.pdf}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
-                >
-                  <FaFilePdf />
-                  {downloadLoading.pdf ? "Preparing..." : "Notes"}
-                  <FaDownload className="ml-2" />
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-700 transition">
+                  {downloadLoading.pdf ? (
+                    <div className="animate-spin w-3 h-3 border-2 border-gray-600 rounded-full border-t-transparent" />
+                  ) : (
+                    <FaFilePdf />
+                  )}
+                  Download Notes
                 </button>
               )}
             </div>
           </div>
 
-          {/* Analytics Section */}
+          {/* Analytics Dashboard */}
           {analytics && (
-            <div className="mt-8 pt-6 border-t">
-              <h3 className="text-xl font-bold text-gray-800 mb-6">📊 Lecture Analytics</h3>
-              
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                <div className="bg-white border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <FaEye className="text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Total Views</p>
-                      <p className="text-2xl font-bold">{analytics.totalViews || 0}</p>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Stat Cards */}
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-md">
+                <div className="flex items-center gap-3 mb-2 opacity-80">
+                  <FaEye />{" "}
+                  <span className="text-sm font-medium">Total Views</span>
                 </div>
-                
-                <div className="bg-white border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <FaClock className="text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Watch Time</p>
-                      <p className="text-2xl font-bold">
-                        {((analytics.totalWatchTimeSec || 0) / 3600).toFixed(1)}h
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <span className="text-purple-600 font-bold">%</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Avg. Attention</p>
-                      <p className="text-2xl font-bold">
-                        {analytics.avgAttentionScore || 0}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-3xl font-bold">
+                  {analytics.totalViews || 0}
+                </p>
               </div>
 
-              {/* Graph Section */}
+              <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-5 text-white shadow-md">
+                <div className="flex items-center gap-3 mb-2 opacity-80">
+                  <FaClock />{" "}
+                  <span className="text-sm font-medium">Watch Time (Hrs)</span>
+                </div>
+                <p className="text-3xl font-bold">
+                  {((analytics.totalWatchTimeSec || 0) / 3600).toFixed(1)}
+                </p>
+              </div>
+
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-md">
+                <div className="flex items-center gap-3 mb-2 opacity-80">
+                  <FaChartLine />{" "}
+                  <span className="text-sm font-medium">Avg. Focus</span>
+                </div>
+                <p className="text-3xl font-bold">
+                  {analytics.avgAttentionScore || 0}%
+                </p>
+              </div>
+
+              {/* Graph */}
               {analytics.attentionTimelineAvg && graphData.length > 0 && (
-                <div className="mt-8">
-                  <div className="bg-white border rounded-xl p-6 shadow-sm">
-                    <div className="flex justify-between items-center mb-6">
-                      <h4 className="font-bold text-gray-800 text-lg">
-                        📈 Average Attention Timeline
-                      </h4>
-                      <div className="text-sm text-gray-500">
-                        Duration: {graphData.length} seconds
-                      </div>
-                    </div>
-                    
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={graphData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                          <XAxis 
-                            dataKey="time" 
-                            label={{ 
-                              value: "Time (seconds)", 
-                              position: "insideBottom", 
-                              offset: -5 
-                            }}
-                            tick={{ fontSize: 12 }}
-                          />
-                          <YAxis 
-                            label={{ 
-                              value: "Attention %", 
-                              angle: -90, 
-                              position: "insideLeft" 
-                            }}
-                            domain={[0, 100]}
-                            tick={{ fontSize: 12 }}
-                          />
-                          <Tooltip 
-                            formatter={(value) => [`${value}%`, 'Attention']}
-                            labelFormatter={(label) => `Time: ${label}s`}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="attention"
-                            stroke="#4169E1"
-                            strokeWidth={3}
-                            dot={{ r: 1 }}
-                            activeDot={{ r: 6 }}
-                            name="Attention Level"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    
-                    <div className="mt-4 text-sm text-gray-500">
-                      <p>This graph shows the average attention level of viewers throughout the lecture.</p>
-                    </div>
+                <div className="lg:col-span-3 bg-white p-6 rounded-2xl border shadow-sm">
+                  <h3 className="font-bold text-gray-800 mb-6">
+                    Attention Timeline
+                  </h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={graphData}>
+                        <defs>
+                          <linearGradient
+                            id="colorAttention"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1">
+                            <stop
+                              offset="5%"
+                              stopColor="#4F46E5"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4F46E5"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="#E5E7EB"
+                        />
+                        <XAxis dataKey="time" hide />
+                        <YAxis
+                          domain={[0, 100]}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1F2937",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                          }}
+                          itemStyle={{ color: "#fff" }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="attention"
+                          stroke="#4F46E5"
+                          strokeWidth={2}
+                          fillOpacity={1}
+                          fill="url(#colorAttention)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               )}
             </div>
           )}
         </div>
-      </div>
 
-      {/* RIGHT COLUMN - Course Content */}
-      <div className="lg:w-1/3">
-        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6">
-          <h2 className="text-xl font-bold mb-6">Course Content</h2>
-          
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-            {lectures.map((lecture, index) => (
-              <button
-                key={lecture._id}
-                onClick={() => setSelectedLecture(lecture)}
-                className={`w-full text-left p-4 rounded-xl transition-all ${
-                  selectedLecture?._id === lecture._id
-                    ? "bg-black text-white shadow-lg"
-                    : "hover:bg-gray-50 border border-gray-100"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      selectedLecture?._id === lecture._id
-                        ? "bg-gray-700"
-                        : "bg-gray-100"
-                    }`}>
-                      <span className={`text-sm font-medium ${
-                        selectedLecture?._id === lecture._id
-                          ? "text-white"
-                          : "text-gray-600"
-                      }`}>
-                        {index + 1}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{lecture.lectureTitle}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {lecture.videoUrl ? "Video available" : "No video"}
-                      </p>
-                    </div>
-                  </div>
-                  {selectedLecture?._id === lecture._id && (
-                    <FaPlayCircle className="text-green-400" />
-                  )}
+        {/* RIGHT COLUMN - Sidebar */}
+        <div className="lg:w-[400px] flex flex-col gap-6">
+          {/* Instructor Info */}
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-100">
+              {selectedCourse?.creator?.photoUrl ? (
+                <img
+                  src={selectedCourse.creator.photoUrl}
+                  alt="Instructor"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white text-xl font-bold">
+                  {selectedCourse?.creator?.name?.charAt(0) || "I"}
                 </div>
-              </button>
-            ))}
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                Instructor
+              </p>
+              <p className="font-bold text-gray-900">
+                {selectedCourse?.creator?.name || "Unknown"}
+              </p>
+            </div>
           </div>
 
-          {/* Instructor Info */}
-          <div className="mt-8 pt-6 border-t">
-            <h3 className="font-bold text-gray-700 mb-4">Instructor</h3>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden">
-                {/* SAFE CHECK FOR CREATOR PHOTO */}
-                {selectedCourse.creator?.photoUrl ? (
-                  <img
-                    src={selectedCourse.creator.photoUrl}
-                    alt="Instructor"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#4169E1] flex items-center justify-center text-white font-bold">
-                    {/* SAFE CHECK FOR INITIALS */}
-                    {selectedCourse.creator?.name ? selectedCourse.creator.name.charAt(0).toUpperCase() : "I"}
-                  </div>
-                )}
-              </div>
-              <div>
-                {/* CORRECT NAME DISPLAY + CHANGED LABEL */}
-                <p className="font-bold">
-                    {selectedCourse.creator?.name || "Unknown Instructor"}
-                </p>
-                <p className="text-sm text-gray-600">Course Educator</p>
-              </div>
+          {/* Lecture List */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 flex flex-col max-h-[calc(100vh-200px)] sticky top-24">
+            <div className="p-4 border-b bg-gray-50 rounded-t-2xl">
+              <h3 className="font-bold text-gray-800">Course Content</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {lectures.length} Lectures
+              </p>
+            </div>
+
+            <div className="overflow-y-auto p-2 space-y-1 custom-scrollbar">
+              {lectures.map((lecture, index) => {
+                const isActive = selectedLecture?._id === lecture._id;
+                return (
+                  <button
+                    key={lecture._id}
+                    onClick={() => setSelectedLecture(lecture)}
+                    className={`w-full text-left p-3 rounded-xl transition-all group flex items-start gap-3 ${
+                      isActive
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
+                        : "hover:bg-gray-50 text-gray-700"
+                    }`}>
+                    <span
+                      className={`w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full text-xs font-bold ${
+                        isActive
+                          ? "bg-indigo-500 text-white"
+                          : "bg-gray-200 text-gray-500"
+                      }`}>
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p
+                        className={`text-sm font-medium line-clamp-2 ${isActive ? "text-white" : "text-gray-900"}`}>
+                        {lecture.lectureTitle}
+                      </p>
+                      <p
+                        className={`text-xs mt-1 ${isActive ? "text-indigo-200" : "text-gray-400"}`}>
+                        {lecture.videoUrl ? "Video & Audio" : "Audio Only"}
+                      </p>
+                    </div>
+                    {isActive && (
+                      <FaPlayCircle className="mt-1 text-indigo-200" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Hidden Webcam */}
+      {/* Hidden Webcam for Attention Tracking */}
       {viewMode === "video" && attentionActive && (
         <Webcam
           ref={webcamRef}
           audio={false}
           screenshotFormat="image/jpeg"
           videoConstraints={{ facingMode: "user" }}
-          className="fixed bottom-4 right-4 w-32 h-24 rounded-lg opacity-50 pointer-events-none"
+          className="fixed bottom-6 right-6 w-48 rounded-xl shadow-2xl opacity-80 pointer-events-none border-2 border-white z-50 hidden md:block"
         />
       )}
     </div>

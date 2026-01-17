@@ -5,84 +5,113 @@ import { useNavigate } from "react-router-dom";
 import { serverUrl } from "../../App";
 import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
-const CreateCourse = () => {
-    let navigate = useNavigate()
-    let [loading,setLoading]=useState(false)
-    const [title,setTitle] = useState("")
-    const [category,setCategory] = useState("")
+import { motion } from "framer-motion";
 
-    const CreateCourseHandler = async () => {
-        setLoading(true)
-        try {
-            const result = await axios.post(serverUrl + "/api/course/create" , {title , category} , {withCredentials:true})
-            console.log(result.data)
-            toast.success("Course Created")
-            navigate("/courses")
-            setTitle("")
-            setLoading(false)
-        } catch (error) {
-            console.log(error)
-            setLoading(false)
-            toast.error(error.response.data.message)
-        }
-        
+const CreateCourse = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+
+  const CreateCourseHandler = async () => {
+    if (!title || !category) {
+      return toast.error("Please fill all fields");
     }
 
-    return (
-        
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-10">
-            <div className="max-w-xl w-[600px] mx-auto p-6 bg-white shadow-md rounded-md mt-10 relative">
-                <FaArrowLeftLong  className='top-[8%] absolute left-[5%] w-[22px] h-[22px] cursor-pointer' onClick={()=>navigate("/dashboard")}/>
-                <h2 className="text-2xl font-semibold mb-6 text-center">Create Course</h2>
+    setLoading(true);
+    try {
+      await axios.post(
+        serverUrl + "/api/course/create",
+        { title, category },
+        { withCredentials: true },
+      );
+      toast.success("Course Created Successfully 🎉");
+      navigate("/courses");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <form className="space-y-5" onSubmit={(e)=>e.preventDefault()}>
-                    {/* Course Title */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Course Title
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Enter course title"
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[black]"
-                            onChange={(e)=>setTitle(e.target.value)} value={title}
-                        />
-                    </div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+      {/* Back Button */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate("/dashboard")}
+        className="fixed top-8 left-8 bg-white shadow-xl rounded-full p-3 hover:bg-blue-100 transition">
+        <FaArrowLeftLong className="w-5 h-5 text-black" />
+      </motion.button>
 
-                    {/* Category */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Category
-                        </label>
-                        <select
-                            className="w-full border border-gray-300 rounded-md px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[black]"
-                            onChange={(e)=>setCategory(e.target.value)}
-                        >
-                            <option value="">Select category</option>
-                            <option value="App Development">App Development</option>
-                             <option value="AI/ML">AI/ML</option>
-                            <option value="AI Tools">AI Tools
-                            </option>
-                             <option value="Data Science">Data Science</option>
-                            <option value="Data Analytics">Data Analytics</option>
-                            <option value="Ethical Hacking">Ethical Hacking</option>
-                            <option value="UI UX Designing">UI UX Designing</option>
-                            <option value="Web Development">Web Development</option>
-                            <option value="Others">Others</option>
-                        </select>
-                    </div>
+      {/* Card */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="w-full max-w-xl bg-blue-100 rounded-3xl shadow-2xl p-10 border border-gray-200">
+        <h2 className="text-3xl font-bold text-center text-black mb-2">
+          Create New Course
+        </h2>
+        <p className="text-center text-gray-600 mb-8">
+          Start building your next amazing course 🚀
+        </p>
 
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        className="w-full bg-[black] text-white py-2 px-4 rounded-md active:bg-[#3a3a3a] transition" disabled={loading} onClick={CreateCourseHandler}
-                    >
-                        {loading?<ClipLoader size={30} color='white' /> : "Create"}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
+        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          {/* Course Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Course Title
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Complete React Mastery"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-2xl border bg-white border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition shadow-sm"
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-2xl border border-gray-300 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition shadow-sm">
+              <option value="">Select category</option>
+              <option value="App Development">App Development</option>
+              <option value="AI/ML">AI / ML</option>
+              <option value="AI Tools">AI Tools</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Data Analytics">Data Analytics</option>
+              <option value="Ethical Hacking">Ethical Hacking</option>
+              <option value="UI UX Designing">UI / UX Designing</option>
+              <option value="Web Development">Web Development</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+
+          {/* Submit */}
+          <motion.button
+            whileHover={{ scale: loading ? 1 : 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            disabled={loading}
+            onClick={CreateCourseHandler}
+            className="w-full flex items-center justify-center gap-2 bg-blue-900 text-white py-3 rounded-2xl font-semibold shadow-lg hover:bg-blue-900 disabled:opacity-70 transition">
+            {loading ? <ClipLoader size={22} color="white" /> : "Create Course"}
+          </motion.button>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
 };
 
 export default CreateCourse;

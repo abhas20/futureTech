@@ -27,7 +27,6 @@ import ViewLecture from './pages/ViewLecture'
 import SearchWithAi from './pages/SearchWithAi'
 import getAllReviews from './customHooks/getAllReviews'
 import Career from './pages/Career'
-import AddQuiz from './pages/admin/AddQuiz'
 import EditQuiz from './pages/admin/EditQuiz'
 
 export const serverUrl = "http://localhost:8000"

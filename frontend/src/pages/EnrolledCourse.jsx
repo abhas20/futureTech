@@ -1,54 +1,91 @@
-import React  from 'react'
-
-import { useSelector } from 'react-redux';
-
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { FaArrowLeftLong } from "react-icons/fa6";
 
 function EnrolledCourse() {
-  const navigate = useNavigate()
-
+  const navigate = useNavigate();
   const { userData } = useSelector((state) => state.user);
 
-     
-   
- 
-
   return (
-    <div className="min-h-screen w-full px-4 py-9 bg-gray-50">
-      
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white px-4 py-10">
+      {/* Back */}
+      <FaArrowLeftLong
+        className="absolute top-5 left-5 md:top-8 md:left-8 w-5 h-5 md:w-6 md:h-6 cursor-pointer text-gray-400 hover:text-blue-600 transition"
+        onClick={() => navigate("/")}
+      />
 
-      <FaArrowLeftLong  className='absolute top-[3%] md:top-[6%] left-[5%] w-[22px] h-[22px] cursor-pointer' onClick={()=>navigate("/")}/>
-      <h1 className="text-3xl text-center font-bold text-gray-800 mb-6  ">
+      {/* Title */}
+      <h1 className="text-2xl md:text-3xl font-extrabold text-center text-gray-900 mb-8">
         My Enrolled Courses
       </h1>
 
+      {/* Empty State */}
       {userData.enrolledCourses.length === 0 ? (
-        <p className="text-gray-500 text-center w-full">You haven’t enrolled in any course yet.</p>
+        <div className="flex flex-col items-center justify-center mt-20 text-center">
+          <p className="text-gray-500 text-sm md:text-base">
+            You haven’t enrolled in any course yet.
+          </p>
+        </div>
       ) : (
-        <div className="flex items-center justify-center flex-wrap gap-[30px]">
+        <div
+          className="
+            grid gap-6
+            grid-cols-1
+            sm:grid-cols-2
+            lg:grid-cols-3
+            xl:grid-cols-4
+            max-w-7xl mx-auto
+          ">
           {userData.enrolledCourses.map((course) => (
             <div
               key={course._id}
-              className="bg-white rounded-2xl shadow-md overflow-hidden border"
-            >
+              className="
+                bg-white rounded-2xl shadow-md border border-blue-100
+                overflow-hidden
+                hover:shadow-xl hover:-translate-y-1
+                transition-all duration-300
+              ">
+              {/* Thumbnail */}
               <img
                 src={course.thumbnail}
                 alt={course.title}
-                className="w-full h-40 object-cover"
+                className="w-full h-44 object-cover"
               />
-              <div className="p-4">
-                <h2 className="text-lg font-semibold text-gray-800">{course.title}</h2>
-                <p className="text-sm text-gray-600 mb-2">{course.category}</p>
-                <p className="text-sm text-gray-700">{course.level}</p>
-                <h1 className='px-[10px] text-center  py-[10px] border-2  bg-black border-black text-white  rounded-[10px] text-[15px] font-light flex items-center justify-center gap-2 cursor-pointer mt-[10px] hover:bg-gray-600' onClick={()=>navigate(`/viewlecture/${course._id}`)}>Watch Now</h1>
+
+              {/* Content */}
+              <div className="p-5 flex flex-col gap-2">
+                <h2 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                  {course.title}
+                </h2>
+
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span className="capitalize">{course.category}</span>
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                    {course.level}
+                  </span>
+                </div>
+
+                {/* CTA */}
+                <button
+                  onClick={() => navigate(`/viewlecture/${course._id}`)}
+                  className="
+                    mt-4 w-full py-2.5
+                    rounded-xl font-semibold
+                    bg-blue-600 text-white
+                    hover:bg-blue-700
+                    active:scale-95
+                    transition
+                  ">
+                  Watch Now
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default EnrolledCourse
+export default EnrolledCourse;

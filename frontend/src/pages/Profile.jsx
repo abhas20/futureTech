@@ -12,177 +12,202 @@ import {
 function Profile() {
   const { userData } = useSelector((state) => state.user);
   const navigate = useNavigate();
-  // console.log(userData)
 
   const rankColors = {
-    Novice: "bg-gray-200 text-gray-800",
-    Apprentice: "bg-green-200 text-green-800",
-    Expert: "bg-blue-200 text-blue-800",
-    Master: "bg-purple-200 text-purple-800",
-    Terminator: "bg-red-200 text-red-800",
-    MAXED: "bg-yellow-300 text-yellow-900",
+    Novice: "bg-slate-100 text-slate-700",
+    Apprentice: "bg-emerald-100 text-emerald-800",
+    Expert: "bg-blue-100 text-blue-800",
+    Master: "bg-indigo-100 text-indigo-800",
+    Terminator: "bg-gradient-to-r from-red-500 to-orange-500 text-white",
+    MAXED: "bg-gradient-to-r from-yellow-400 to-amber-500 text-black",
     Unranked: "bg-slate-200 text-slate-700",
   };
 
   const renderSocialIcon = (platform, url) => {
     if (!url) return null;
+
     const icons = {
-      github: <FaGithub className="hover:text-black transition-colors" />,
-      linkedin: (
-        <FaLinkedin className="hover:text-blue-600 transition-colors" />
-      ),
-      twitter: <FaTwitter className="hover:text-sky-500 transition-colors" />,
-      personalWebsite: (
-        <FaGlobe className="hover:text-green-600 transition-colors" />
-      ),
+      github: <FaGithub />,
+      linkedin: <FaLinkedin />,
+      twitter: <FaTwitter />,
+      personalWebsite: <FaGlobe />,
     };
+
     return (
       <a
+        key={platform}
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        key={platform}
-        className="text-2xl text-gray-600">
+        className="text-2xl text-slate-500 hover:text-blue-600 transition-colors">
         {icons[platform]}
       </a>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 flex items-center justify-center">
-      <div className="bg-white shadow-xl rounded-3xl p-8 max-w-2xl w-full relative border border-gray-100">
-        <FaArrowLeftLong
-          className="absolute top-8 left-8 w-6 h-6 cursor-pointer text-gray-400 hover:text-black transition"
-          onClick={() => navigate("/")}
-        />
-
-        <div className="flex flex-col items-center text-center pb-6 border-b border-gray-100">
-          {userData?.photoUrl ? (
-            <img
-              src={userData.photoUrl}
-              alt="Profile"
-              className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-md"
-            />
-          ) : (
-            <div className="w-28 h-28 rounded-full text-white flex items-center justify-center text-4xl font-bold bg-black border-4 border-white shadow-md">
-              {userData?.name?.slice(0, 1).toUpperCase()}
-            </div>
-          )}
-          <h2 className="text-3xl font-extrabold mt-4 text-gray-800">
-            {userData?.name}
-          </h2>
-          <span className="px-3 py-1 bg-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider rounded-full mt-2">
-            {userData?.role}
-          </span>
-
-          <span
-            className={`px-3 py-1 text-sm font-bold uppercase tracking-wider rounded-full mt-2
-            ${rankColors[userData?.rank || "Unranked"]}`}>
-            {userData?.rank || "Unranked"}
-          </span>
-
-          <div className="flex gap-5 mt-5">
-            {userData?.socialLinks &&
-              Object.entries(userData.socialLinks).map(([platform, url]) =>
-                renderSocialIcon(platform, url)
-              )}
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 px-4 py-12 flex items-center justify-center">
+      <div className="relative max-w-3xl w-full rounded-3xl bg-white/80 backdrop-blur-xl shadow-2xl border border-blue-100 overflow-hidden">
+        {/* Header Gradient */}
+        <div className="h-20 bg-gradient-to-r from-blue-600 to-indigo-800 relative">
+          <FaArrowLeftLong
+            className="absolute top-6 left-6 w-6 h-6 text-white/80 hover:text-white cursor-pointer transition"
+            onClick={() => navigate("/")}
+          />
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase">
-                Email Address
-              </h4>
-              <p className="text-gray-700 font-medium">{userData?.email}</p>
+        {/* Profile Content */}
+        <div className="px-8 pb-10 mt-16">
+          {/* Avatar */}
+          <div className="flex flex-col items-center text-center">
+            {userData?.photoUrl ? (
+              <img
+                src={userData.photoUrl}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+              />
+            ) : (
+              <div className="w-32 h-32 rounded-full flex items-center justify-center text-4xl font-black text-white bg-gradient-to-br from-blue-600 to-indigo-800 border-4 border-white shadow-xl">
+                {userData?.name?.slice(0, 1).toUpperCase()}
+              </div>
+            )}
+
+            <h2 className="text-3xl font-extrabold text-slate-900 mt-4">
+              {userData?.name}
+            </h2>
+
+            <div className="flex gap-3 mt-3">
+              <span className="px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full bg-blue-100 text-blue-700">
+                {userData?.role}
+              </span>
+              <span
+                className={`px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full ${
+                  rankColors[userData?.rank || "Unranked"]
+                }`}>
+                {userData?.rank || "Unranked"}
+              </span>
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase">Bio</h4>
-              <p className="text-gray-600 leading-relaxed">
-                {userData?.description || "No bio added yet."}
-              </p>
+
+            {/* Socials */}
+            <div className="flex gap-6 mt-5">
+              {userData?.socialLinks &&
+                Object.entries(userData.socialLinks).map(([platform, url]) =>
+                  renderSocialIcon(platform, url),
+                )}
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
-                Skills
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {userData?.skills?.length > 0 ? (
-                  userData.skills.map((skill, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-black text-white text-xs rounded-lg font-medium">
-                      {skill}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-400 italic">None listed</p>
-                )}
+          {/* Info Grid */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+            {/* Left */}
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Email
+                </h4>
+                <p className="text-slate-700 font-medium">{userData?.email}</p>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Bio
+                </h4>
+                <p className="text-slate-600 leading-relaxed">
+                  {userData?.description || "No bio added yet."}
+                </p>
               </div>
             </div>
 
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
-                Interests
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {userData?.interests?.length > 0 ? (
-                  userData.interests.map((interest, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg border border-gray-200">
-                      {interest}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-400 italic">None listed</p>
-                )}
+            {/* Right */}
+            <div className="space-y-8">
+              {/* Skills */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {userData?.skills?.length > 0 ? (
+                    userData.skills.map((skill, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 text-xs rounded-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-sm">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">None listed</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Interests */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  Interests
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {userData?.interests?.length > 0 ? (
+                    userData.interests.map((interest, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 text-xs rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                        {interest}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">None listed</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Preferred Fields */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  Preferred Fields
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {userData?.preferredFields?.length > 0 ? (
+                    userData.preferredFields.map((field, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 text-xs rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                        {field}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">None listed</p>
+                  )}
+                </div>
               </div>
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">
-                Preferred Fields
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {userData?.preferredFields?.length > 0 ? (
-                  userData.preferredFields.map((fields, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg border border-gray-200">
-                      {fields}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-400 italic">None listed</p>
-                )}
+          </div>
+
+          {/* Footer Stats */}
+          <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex gap-10">
+              <div className="text-center">
+                <p className="text-3xl font-black text-slate-900">
+                  {userData?.enrolledCourses?.length || 0}
+                </p>
+                <p className="text-xs uppercase font-bold text-slate-400">
+                  Courses
+                </p>
+              </div>
+
+              <div className="text-center">
+                <p className="text-3xl font-black text-blue-600">
+                  {userData?.xp || 0}
+                </p>
+                <p className="text-xs uppercase font-bold text-slate-400">XP</p>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="mt-10 pt-6 border-t border-gray-100 flex items-center justify-between">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-black">
-              {userData?.enrolledCourses?.length || 0}
-            </p>
-            <p className="text-xs text-gray-400 uppercase font-bold">Courses</p>
+            <button
+              onClick={() => navigate("/editprofile")}
+              className="px-10 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:scale-105 active:scale-95 transition-all shadow-lg">
+              Edit Profile
+            </button>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-green-400">
-              {userData?.xp || 0}
-            </p>
-            <p className="text-sm text-gray-400 uppercase font-bold">XP</p>
-          </div>
-
-          <button
-            className="px-8 py-3 rounded-xl bg-black text-white font-bold hover:bg-gray-800 active:scale-95 transition-all shadow-lg cursor-pointer"
-            onClick={() => navigate("/editprofile")}>
-            Edit Profile
-          </button>
         </div>
       </div>
     </div>

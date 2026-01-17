@@ -162,219 +162,230 @@ function ViewCourse() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto bg-white shadow-md rounded-xl p-6 space-y-6 relative">
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 px-4 py-8">
+    <div className="max-w-7xl mx-auto space-y-10">
 
-        {/* Top Section */}
-        <div className="flex flex-col md:flex-row gap-6 ">
+      {/* BACK */}
+      <FaArrowLeftLong
+        onClick={() => navigate("/allcourses")}
+        className="text-black text-xl cursor-pointer hover:scale-110 transition"
+      />
 
-          {/* Thumbnail */}
-          <div className="w-full md:w-1/2">
-             <FaArrowLeftLong  className='text-[black] w-[22px] h-[22px] cursor-pointer' onClick={()=>navigate("/allcourses")}/>
-            {selectedCourseData?.thumbnail ? <img
-              src={selectedCourseData?.thumbnail}
-              alt="Course Thumbnail"
-              className="rounded-xl w-full object-cover"
-            /> : <img
-              src={img}
-              alt="Course Thumbnail"
-              className="rounded-xl  w-full  object-cover"
-            />}
+      {/* HERO */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* LEFT */}
+        <div className="lg:col-span-2 space-y-6">
+          <img
+            src={selectedCourseData?.thumbnail || img}
+            className="w-full h-[360px] object-cover rounded-3xl shadow-xl"
+          />
+
+          <div className="space-y-3">
+            <h1 className="text-4xl font-extrabold text-black">
+              {selectedCourseData?.title}
+            </h1>
+            <p className="text-gray-600 text-lg">
+              {selectedCourseData?.subTitle}
+            </p>
+
+            {/* Rating */}
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1 text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <FaStar key={i} />
+                ))}
+              </div>
+              <span className="font-semibold text-black">{avgRating || "New"}</span>
+              <span className="text-gray-500 text-sm">
+                ({selectedCourseData?.reviews?.length || 0} reviews)
+              </span>
+            </div>
           </div>
+        </div>
 
-          {/* Course Info */}
-          <div className="flex-1 space-y-2 mt-[20px]">
-            <h1 className="text-2xl font-bold">{selectedCourseData?.title}</h1>
-            <p className="text-gray-600">{selectedCourseData?.subTitle}</p>
-
-            {/* Rating & Price Section (FIXED) */}
-            <div className="flex items-start flex-col justify-between">
-              
-              <div className="flex items-center gap-2 mt-2 mb-2">
-                {/* Dynamic Star */}
-                <span className="text-yellow-500 text-lg">
-                  {Number(avgRating) > 0 ? "⭐" : "✩"}
-                </span>
-
-                {/* Dynamic Rating Number */}
-                <span className="font-bold text-gray-800">
-                  {Number(avgRating) > 0 ? avgRating : "New"}
-                </span>
-
-                {/* Real Review Count */}
-                <span className="text-gray-500 text-sm">
-                  ({selectedCourseData?.reviews?.length || 0} reviews)
-                </span>
-              </div>
-
-              <div>
-                <span className="text-lg font-semibold text-black">{selectedCourseData?.price}</span>{" "}
-                <span className="line-through text-sm text-gray-400">{(selectedCourseData?.price*2)}</span>
-              </div>
+        {/* RIGHT – ENROLL CARD */}
+        <div className="bg-white rounded-3xl shadow-2xl p-6 h-fit sticky top-10 border">
+          <div className="space-y-4">
+            <div>
+              <span className="text-3xl font-bold text-black">
+                ₹{selectedCourseData?.price}
+              </span>
+              <span className="ml-2 line-through text-gray-400">
+                ₹{selectedCourseData?.price * 2}
+              </span>
             </div>
 
-            {/* Highlights */}
-            <ul className="text-sm text-gray-700 space-y-1 pt-2">
-              <li>✅ 10+ hours of video content</li>
-              <li>✅ Lifetime access to course materials</li>
-            </ul>
-
-            {/* Enroll Button */}
-            {!isEnrolled ? <button className="bg-[black] text-white px-6 py-2 rounded hover:bg-gray-700 mt-3" onClick={() => handleEnroll(courseId, userData._id)}>
-              Enroll Now
-            </button> :
-              <button className="bg-green-200 text-green-600 px-6 py-2 rounded hover:bg-gray-100 hover:border mt-3" onClick={() => navigate(`/viewlecture/${courseId}`)}>
+            {!isEnrolled ? (
+              <button
+                onClick={() => handleEnroll(courseId, userData._id)}
+                className="w-full bg-gradient-to-r from-black to-blue-600 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition"
+              >
+                Enroll Now
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate(`/viewlecture/${courseId}`)}
+                className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold"
+              >
                 Watch Now
               </button>
-            }
-          </div>
-        </div>
+            )}
 
-        {/* What You'll Learn */}
-        <div>
-          <h2 className="text-xl font-semibold mb-2">What You’ll Learn</h2>
-          <ul className="list-disc pl-6 text-gray-700 space-y-1">
-            <li>Learn {selectedCourseData?.category} from Beginning</li>
-
-          </ul>
-        </div>
-
-        {/* Requirements */}
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Requirements</h2>
-          <p className="text-gray-700">Basic programming knowledge is helpful but not required.</p>
-        </div>
-
-        {/* Who This Course Is For */}
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Who This Course is For</h2>
-          <p className="text-gray-700">
-            Beginners, aspiring developers, and professionals looking to upgrade skills.
-          </p>
-        </div>
-
-        {/* course lecture   */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Side - Curriculum */}
-          <div className="bg-white w-full md:w-2/5 p-6 rounded-2xl shadow-lg border border-gray-200">
-            <h2 className="text-xl font-bold mb-1 text-gray-800">Course Curriculum</h2>
-            <p className="text-sm text-gray-500 mb-4">{selectedCourseData?.lectures?.length} Lectures</p>
-
-            <div className="flex flex-col gap-3">
-              {selectedCourseData?.lectures?.map((lecture, index) => (
-                <button
-                  key={index}
-                  disabled={!lecture.isPreviewFree}
-                  onClick={() => {
-                    if (lecture.isPreviewFree) {
-                      setSelectedLecture(lecture);
-                    }
-                  }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-200 text-left ${lecture.isPreviewFree
-                      ? "hover:bg-gray-100 cursor-pointer border-gray-300"
-                      : "cursor-not-allowed opacity-60 border-gray-200"
-                    } ${selectedLecture?.lectureTitle === lecture.lectureTitle
-                      ? "bg-gray-100 border-gray-400"
-                      : ""
-                    }`}
-                >
-                  <span className="text-lg text-gray-700">
-                    {lecture.isPreviewFree ? <FaPlayCircle /> : <FaLock />}
-                  </span>
-                  <span className="text-sm font-medium text-gray-800">
-                    {lecture.lectureTitle}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Side - Video + Info */}
-          <div className="bg-white w-full md:w-3/5 p-6 rounded-2xl shadow-lg border border-gray-200">
-            <div className="aspect-video w-full rounded-lg overflow-hidden mb-4 bg-black flex items-center justify-center">
-              {selectedLecture?.videoUrl ? (
-                <video
-                  src={selectedLecture.videoUrl}
-                  controls
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-white text-sm">Select a preview lecture to watch</span>
-              )}
-            </div>
-
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              {selectedLecture?.lectureTitle || "Lecture Title"}
-            </h3>
-            <p className="text-gray-600 text-sm">
-              {selectedCourseData?.title}
-            </p>
-          </div>
-        </div>
-        <div className="mt-8 border-t pt-6">
-          <h2 className="text-xl font-semibold mb-2">Write a Review</h2>
-          <div className="mb-4">
-            <div className="flex gap-1 mb-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-
-                <FaStar key={star}
-                  onClick={() => setRating(star)} className={star <= rating ? "fill-yellow-500" : "fill-gray-300"} />
-
-              ))}
-            </div>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Write your comment here..."
-              className="w-full border border-gray-300 rounded-lg p-2"
-              rows="3"
-            />
-            <button
-
-              className="bg-black text-white mt-3 px-4 py-2 rounded hover:bg-gray-800" onClick={handleReview}
-            >
-              Submit Review
-            </button>
-          </div>
-              {isEnrolled && (
-            <div className="mt-8">
-              <CourseChat courseId={courseId} user={userData} />
-            </div>
-          )}
-          {/* Instructor Info */}
-          <div className="flex items-center gap-4 pt-4 border-t ">
-            {creatorData?.photoUrl ? <img
-              src={creatorData?.photoUrl}
-              alt="Instructor"
-              className="w-16 h-16 rounded-full object-cover"
-            /> : <img
-              src={img}
-              alt="Instructor"
-              className="w-16 h-16 rounded-full object-cover"
-            />
-            }
-            <div>
-              <h3 className="text-lg font-semibold">{creatorData?.name}</h3>
-              <p className="md:text-sm text-gray-600 text-[10px] ">{creatorData?.description}</p>
-              <p className="md:text-sm text-gray-600 text-[10px] ">{creatorData?.email}</p>
-
-            </div>
-          </div>
-          <div>
-            <p className='text-xl font-semibold mb-2'>Other Published Courses by the Educator -</p>
-            <div className='w-full transition-all duration-300 py-[20px]   flex items-start justify-center lg:justify-start flex-wrap gap-6 lg:px-[80px] '>
-
-              {
-                selectedCreatorCourse?.map((item, index) => (
-                  <Card key={index} thumbnail={item.thumbnail} title={item.title} id={item._id} price={item.price} category={item.category} />
-                ))
-              }
-            </div>
+            <ul className="text-sm text-gray-600 space-y-2 pt-2">
+              <li>✔ Lifetime Access</li>
+              <li>✔ Expert Instructor</li>
+              <li>✔ Certificate of Completion</li>
+            </ul>
           </div>
         </div>
       </div>
+
+      {/* DESCRIPTION */}
+      <section className="bg-white rounded-3xl p-8 shadow-lg">
+        <h2 className="text-2xl font-bold mb-4">What you'll learn</h2>
+        <ul className="grid md:grid-cols-2 gap-3 text-gray-700">
+          <li>✔ Master {selectedCourseData?.category}</li>
+          <li>✔ Build real-world projects</li>
+          <li>✔ Industry-ready skills</li>
+          <li>✔ Learn at your own pace</li>
+        </ul>
+      </section>
+
+      {/* CURRICULUM + PLAYER */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+
+        {/* CURRICULUM */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-lg">
+          <h2 className="text-xl font-bold mb-4">Course Curriculum</h2>
+
+          <div className="space-y-2">
+            {selectedCourseData?.lectures?.map((lecture, i) => (
+              <button
+                key={i}
+                disabled={!lecture.isPreviewFree}
+                onClick={() => lecture.isPreviewFree && setSelectedLecture(lecture)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition
+                  ${lecture.isPreviewFree
+                    ? "hover:bg-blue-50 border-gray-200"
+                    : "opacity-50 cursor-not-allowed"}
+                `}
+              >
+                {lecture.isPreviewFree ? (
+                  <FaPlayCircle className="text-blue-600" />
+                ) : (
+                  <FaLock className="text-gray-500" />
+                )}
+                <span className="text-sm font-medium">
+                  {lecture.lectureTitle}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* PLAYER */}
+        <div className="lg:col-span-3 bg-white rounded-3xl p-6 shadow-lg">
+          <div className="aspect-video rounded-xl overflow-hidden bg-black flex items-center justify-center mb-4">
+            {selectedLecture?.videoUrl ? (
+              <video
+                src={selectedLecture.videoUrl}
+                controls
+                className="w-full h-full"
+              />
+            ) : (
+              <span className="text-white text-sm">
+                Select a preview lecture
+              </span>
+            )}
+          </div>
+
+          <h3 className="font-semibold text-lg">
+            {selectedLecture?.lectureTitle || "Lecture Title"}
+          </h3>
+          <p className="text-sm text-gray-500">
+            {selectedCourseData?.title}
+          </p>
+        </div>
+      </div>
+
+      {/* REVIEW */}
+      <section className="bg-white rounded-3xl p-8 shadow-lg">
+        <h2 className="text-2xl font-bold mb-4">Write a Review</h2>
+
+        <div className="flex gap-2 mb-3">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <FaStar
+              key={star}
+              onClick={() => setRating(star)}
+              className={`cursor-pointer text-xl ${
+                star <= rating ? "text-yellow-400" : "text-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows="3"
+          className="w-full border rounded-xl p-3 mb-3"
+          placeholder="Share your experience..."
+        />
+
+        <button
+          onClick={handleReview}
+          className="bg-black text-white px-6 py-2 rounded-xl"
+        >
+          Submit Review
+        </button>
+      </section>
+
+      {/* CHAT */}
+      {isEnrolled && (
+        <div className="bg-white rounded-3xl shadow-lg p-6">
+          <CourseChat courseId={courseId} user={userData} />
+        </div>
+      )}
+
+      {/* INSTRUCTOR */}
+      <section className="bg-white rounded-3xl p-8 shadow-lg">
+        <div className="flex items-center gap-6">
+          <img
+            src={creatorData?.photoUrl || img}
+            className="w-20 h-20 rounded-full object-cover"
+          />
+          <div>
+            <h3 className="text-xl font-bold">{creatorData?.name}</h3>
+            <p className="text-gray-600">{creatorData?.description}</p>
+            <p className="text-sm text-gray-500">{creatorData?.email}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* OTHER COURSES */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">
+          More Courses by this Instructor
+        </h2>
+        <div className="flex flex-wrap gap-6">
+          {selectedCreatorCourse?.map((item, i) => (
+            <Card
+              key={i}
+              thumbnail={item.thumbnail}
+              title={item.title}
+              id={item._id}
+              price={item.price}
+              category={item.category}
+            />
+          ))}
+        </div>
+      </section>
+
     </div>
-  )
+  </div>
+)
+
 }
 
 export default ViewCourse
