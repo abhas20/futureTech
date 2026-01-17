@@ -10,7 +10,7 @@ import { setSelectedCourseData } from '../redux/courseSlice';
 import { FaLock, FaPlayCircle } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import { FaStar } from "react-icons/fa6";
-
+import CourseChat from "../components/CourseChat";
 
 function ViewCourse() {
 
@@ -336,7 +336,11 @@ function ViewCourse() {
               Submit Review
             </button>
           </div>
-
+              {isEnrolled && (
+            <div className="mt-8">
+              <CourseChat courseId={courseId} user={userData} />
+            </div>
+          )}
           {/* Instructor Info */}
           <div className="flex items-center gap-4 pt-4 border-t ">
             {creatorData?.photoUrl ? <img

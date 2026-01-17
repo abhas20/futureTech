@@ -14,6 +14,9 @@ import uploadRouter from "./routes/upload.js"
 
 import quizRouter from "./routes/quizRoute.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import http from "http";
+import { initSocket } from "./socket.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 
 dotenv.config()
@@ -35,14 +38,17 @@ app.use("/api/review", reviewRouter)
 app.use("/api/attention", attentionRouter)
 app.use("/api/divide", uploadRouter)
 app.use("/api/quiz", quizRouter);
-
+app.use("/api/chat", chatRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.get("/" , (req,res)=>{
     res.send("Hello From Server")
 })
 
-app.listen(port , ()=>{
-    console.log("Server Started")
-    connectDb()
-})
 
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(port, () => {
+    connectDb();
+  console.log(`Server running on port ${port}`);
+});
