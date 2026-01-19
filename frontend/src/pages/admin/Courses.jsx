@@ -1,6 +1,14 @@
+
 import React, { useEffect } from "react";
-import { FaEdit } from "react-icons/fa";
-import { FaArrowLeftLong } from "react-icons/fa6";
+import {
+  FaEdit,
+  FaPlus,
+  FaArrowLeft,
+  FaBookOpen,
+  FaGlobe,
+  FaCalendarAlt,
+  FaLayerGroup,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
@@ -8,15 +16,19 @@ import { serverUrl } from "../../App";
 import { toast } from "react-toastify";
 import { setCreatorCourseData } from "../../redux/courseSlice";
 import img1 from "../../assets/empty.jpg";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-const rowVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: (i) => ({
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
     opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.05 },
-  }),
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
 };
 
 function Courses() {
@@ -40,150 +52,196 @@ function Courses() {
   }, [dispatch]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 px-4 sm:px-8 py-10">
-      {/* Back */}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate("/dashboard")}
-        className="fixed top-6 left-6 bg-white shadow-xl rounded-full p-3 z-20 hover:bg-blue-50">
-        <FaArrowLeftLong className="text-black" />
-      </motion.button>
+    <div className="min-h-screen bg-[#f8fafc] font-sans pb-20">
+      {/* ROYAL HEADER */}
+      <div className="bg-slate-900 pt-10 pb-28 px-6 md:px-12 relative overflow-hidden">
+        {/* Animated Background Decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
 
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-black">My Courses</h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Manage, edit, and publish your courses
-          </p>
-        </div>
-
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/createcourses")}
-          className="bg-black text-white px-6 py-3 rounded-2xl shadow-lg hover:bg-blue-700 transition">
-          + Create Course
-        </motion.button>
-      </div>
-
-      {/* DESKTOP TABLE */}
-      <div className="hidden md:block max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b text-gray-600">
-            <tr>
-              <th className="text-left px-6 py-4">Course</th>
-              <th className="text-left px-6 py-4">Price</th>
-              <th className="text-left px-6 py-4">Status</th>
-              <th className="text-left px-6 py-4">Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {creatorCourseData?.map((course, index) => (
-              <motion.tr
-                key={course._id}
-                custom={index}
-                variants={rowVariants}
-                initial="hidden"
-                animate="visible"
-                className="border-b hover:bg-blue-50/40 transition">
-                <td className="px-6 py-4 flex items-center gap-4">
-                  <img
-                    src={course.thumbnail || img1}
-                    alt=""
-                    className="w-16 h-16 rounded-xl object-cover border"
-                  />
-                  <div>
-                    <p className="font-semibold text-black">{course.title}</p>
-                    <p className="text-xs text-gray-500">{course.category}</p>
-                  </div>
-                </td>
-
-                <td className="px-6 py-4 font-medium">
-                  {course.price ? `₹${course.price}` : "₹ NA"}
-                </td>
-
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-xs font-semibold ${
-                      course.isPublished
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-yellow-700"
-                    }`}>
-                    {course.isPublished ? "Published" : "Draft"}
-                  </span>
-                </td>
-
-                <td className="px-6 py-4">
-                  <FaEdit
-                    className="text-gray-500 hover:text-blue-600 cursor-pointer text-lg transition"
-                    onClick={() => navigate(`/addcourses/${course._id}`)}
-                  />
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-
-        <p className="text-center text-xs text-gray-400 py-6">
-          Showing all courses created by you
-        </p>
-      </div>
-
-      {/* MOBILE CARDS */}
-      <div className="md:hidden space-y-5 max-w-7xl mx-auto">
-        {creatorCourseData?.map((course, index) => (
-          <motion.div
-            key={course._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="bg-white rounded-2xl shadow-lg p-4 border">
-            <div className="flex items-center gap-4">
-              <img
-                src={course.thumbnail || img1}
-                alt=""
-                className="w-16 h-16 rounded-xl object-cover"
-              />
-
-              <div className="flex-1">
-                <h2 className="font-semibold text-black text-sm">
-                  {course.title}
-                </h2>
-                <p className="text-xs text-gray-500">
-                  {course.price ? `₹${course.price}` : "₹ NA"}
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-6">
+              <motion.button
+                whileHover={{
+                  scale: 1.1,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => navigate("/dashboard")}
+                className="p-4 bg-white/10 rounded-2xl text-white backdrop-blur-md border border-white/10 transition-all"
+              >
+                <FaArrowLeft size={18} />
+              </motion.button>
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+                  MY <span className="text-amber-400">COURSES</span>
+                </h1>
+                <p className="text-slate-400 mt-2 flex items-center gap-2 font-medium">
+                  <FaBookOpen className="text-amber-500" />
+                  Managing {creatorCourseData?.length || 0} Professional
+                  Programs
                 </p>
               </div>
-
-              <FaEdit
-                className="text-gray-500 text-lg cursor-pointer"
-                onClick={() => navigate(`/addcourses/${course._id}`)}
-              />
             </div>
 
-            <div className="mt-3">
-              <span
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold ${
-                  course.isPublished
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-yellow-700"
-                }`}>
-                {course.isPublished ? "Published" : "Draft"}
-              </span>
-            </div>
-          </motion.div>
-        ))}
-
-        <p className="text-center text-xs text-gray-400 pt-6">
-          Showing all courses created by you
-        </p>
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 25px -5px rgb(245 158 11 / 0.4)",
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/createcourses")}
+              className="group flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-600 text-slate-900 px-8 py-4 rounded-2xl font-bold shadow-xl transition-all"
+            >
+              <FaPlus className="group-hover:rotate-90 transition-transform duration-300" />
+              CREATE NEW COURSE
+            </motion.button>
+          </div>
+        </div>
       </div>
-    </motion.div>
+
+      {/* CONTENT SECTION */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto px-6 -mt-12"
+      >
+        {/* Desktop Header Labels */}
+        <div className="hidden md:grid grid-cols-12 gap-4 px-10 py-4 text-slate-500 text-[11px] font-black uppercase tracking-[0.2em]">
+          <div className="col-span-6">General Details</div>
+          <div className="col-span-2 text-center">Investment</div>
+          <div className="col-span-2 text-center">Visibility</div>
+          <div className="col-span-2 text-right">Settings</div>
+        </div>
+
+        {/* COURSE LIST */}
+        <div className="space-y-5">
+          <AnimatePresence>
+            {creatorCourseData?.map((course) => (
+              <motion.div
+                key={course._id}
+                variants={itemVariants}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="group bg-white border border-slate-200/60 rounded-[2rem] p-5 md:p-6 shadow-sm hover:shadow-2xl hover:shadow-blue-900/10 hover:border-blue-200 transition-all duration-500"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-6">
+                  {/* Info Column */}
+                  <div className="md:col-span-6 flex items-center gap-6">
+                    <div className="relative shrink-0">
+                      <img
+                        src={course.thumbnail || img1}
+                        alt="Course"
+                        className="w-20 h-20 md:w-28 md:h-28 rounded-3xl object-cover shadow-md group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute -top-2 -right-2 bg-amber-400 shadow-lg rounded-xl p-2 border-2 border-white">
+                        <FaGlobe className="text-slate-900 text-xs" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1 overflow-hidden">
+                      <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate">
+                        {course.title}
+                      </h3>
+                      <p className="text-slate-500 text-sm line-clamp-1 mb-2 italic">
+                        {course.description || "No description provided."}
+                      </p>
+
+                      {/* Meta Tags Horizontal Bar */}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-[10px] font-bold px-3 py-1 bg-blue-50 text-blue-600 rounded-full uppercase tracking-wider">
+                          {course.category}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                          <FaLayerGroup size={10} />
+                          <span>{course.lectures?.length || 0} Lectures</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-slate-400 text-xs border-l pl-3 border-slate-200">
+                          <FaCalendarAlt size={10} />
+                          <span>
+                            {new Date(course.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Column */}
+                  <div className="md:col-span-2 text-center">
+                    <div className="inline-block px-4 py-2 bg-slate-50 rounded-2xl">
+                      <p className="text-2xl font-black text-slate-800">
+                        {course.price ? (
+                          `₹${course.price}`
+                        ) : (
+                          <span className="text-slate-400">FREE</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Status Column */}
+                  <div className="md:col-span-2 flex justify-center">
+                    <div
+                      className={`flex items-center gap-2.5 px-5 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border ${
+                        course.isPublished
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                          : "bg-rose-50 text-rose-600 border-rose-100"
+                      }`}
+                    >
+                      <span
+                        className={`w-2 h-2 rounded-full ${course.isPublished ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`}
+                      ></span>
+                      {course.isPublished ? "Live" : "Draft"}
+                    </div>
+                  </div>
+
+                  {/* Actions Column */}
+                  <div className="md:col-span-2 flex justify-end">
+                    <motion.button
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => navigate(`/addcourses/${course._id}`)}
+                      className="p-5 bg-slate-900 text-white hover:bg-blue-600 rounded-[1.5rem] transition-all shadow-xl"
+                    >
+                      <FaEdit size={20} />
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* EMPTY STATE */}
+        {creatorCourseData?.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-200 mt-10"
+          >
+            <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <FaBookOpen className="text-slate-300 text-4xl" />
+            </div>
+            <h3 className="text-2xl font-black text-slate-800">
+              No Courses Found
+            </h3>
+            <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+              Your dashboard is looking a bit empty. Ready to share your
+              knowledge with the world?
+            </p>
+          </motion.div>
+        )}
+
+        <footer className="mt-20 pb-10">
+          <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent mb-6"></div>
+          <p className="text-slate-400 text-[10px] font-bold text-center uppercase tracking-[0.3em]">
+            Quality Education Management System{" "}
+            <span className="text-amber-500 mx-2">•</span> TLE Terminators
+          </p>
+        </footer>
+      </motion.div>
+    </div>
   );
 }
 

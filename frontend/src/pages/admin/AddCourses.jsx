@@ -659,3 +659,5 @@ const CustomSelect = ({ label, options, value, onChange, name }) => (
 );
 
 export default AddCourses;
+
+
