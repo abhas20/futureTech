@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema(
 
     interests: { type: [String], default: [] },
     skills: { type: [String], default: [] },
-    preferredFields: { type: [String], default: [] },
+      preferredFields: { type: [String], default: [] },
     socialLinks: {
       linkedin: { type: String, default: null },
       github: { type: String, default: null },

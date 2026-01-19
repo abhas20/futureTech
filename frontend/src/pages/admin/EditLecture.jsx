@@ -56,6 +56,7 @@ function EditLecture() {
       const formData = new FormData();
       formData.append("lectureTitle", lectureTitle);
       formData.append("isPreviewFree", isPreviewFree.toString());
+      formData.append("courseId", courseId);
       if (videoFile) formData.append("videoUrl", videoFile);
       if (notesFile) formData.append("notesUrl", notesFile);
 
@@ -72,7 +73,7 @@ function EditLecture() {
 
       toast.success("Lecture Updated Successfully");
       navigate(`/createlecture/${courseId}`);
-    } catch (e) {
+    } catch {
       toast.error("Update Failed");
     }
     setLoading(false);
@@ -126,6 +127,7 @@ function EditLecture() {
               <h3 className="text-lg font-bold text-black">
                 Quiz {quiz?.quizTitle || ""}
               </h3>
+              <h3 className="text-sm text-gray-700">Duration : {quiz?.duration} minutes</h3>
               <p className="text-sm text-gray-600">
                 Attach or manage lecture quiz
               </p>

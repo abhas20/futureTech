@@ -16,6 +16,16 @@ const courseChatSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    upvotes: {
+      type: Number,
+      default: 0,
+    },
+    voters: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -21,20 +21,30 @@ function CourseChat({ courseId, user }) {
     socketRef.current.on("receive_message", (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
+    socketRef.current.on("message_upvoted", ({ messageId, upvotes, voters }) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === messageId ? { ...m, upvotes, voters } : m
+        )
+      );
+    });
 
     return () => socketRef.current.disconnect();
   }, [courseId]);
 
-  // useEffect(() => {
-  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  // }, [messages]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = () => {
     if (!text.trim()) return;
 
     const optimisticMsg = {
-      _id: Date.now(),
+      _id: `temp-${Date.now()}`,
       message: text,
+      upvotes: 0,
+      voters: [],
+      optimistic: true,
       sender: { _id: user._id, name: user.name },
     };
 
@@ -74,18 +84,45 @@ function CourseChat({ courseId, user }) {
               )}
 
               <div
-                className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow
+                className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow pointer-events-auto
                   ${
                     isMe
                       ? "bg-black text-white rounded-br-sm"
                       : "bg-white text-gray-800 rounded-bl-sm"
                   }`}>
                 {!isMe && (
-                  <p className="text-xs font-semibold text-blue-600 mb-1">
-                    {m.sender?.name || "User"}
-                  </p>
-                )}
-                {m.message}
+                <p className="text-xs font-semibold text-blue-600 mb-1">
+                  {m.sender?.name || "User"}
+                </p>
+              )}
+
+              <p>{m.message}</p>
+
+              <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                <button
+                  type="button"
+                  disabled={m.optimistic}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (m.optimistic) return;
+                    socketRef.current.emit("upvote_message", {
+                      messageId: m._id,
+                      courseId,
+                      userId: user._id,
+                    });
+                  }}
+                  className={`cursor-pointer pointer-events-auto transition ${
+                    m.optimistic
+                      ? "opacity-40 cursor-not-allowed"
+                      : m.voters?.includes(user._id)
+                      ? "text-blue-600"
+                      : "hover:text-blue-600"
+                  }`}
+                >
+                  👍
+                </button>
+                <span>{m.upvotes || 0}</span>
+              </div>
               </div>
             </div>
           );

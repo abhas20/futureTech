@@ -2,7 +2,7 @@ import uploadOnCloudinary, { uploadMediaWithAudio, uploadFileToCloudinary } from
 import Course from "../models/courseModel.js";
 import Lecture from "../models/lectureModel.js";
 import User from "../models/userModel.js";
-
+import { indexLectureNotes } from "./aiIndexController.js";
 // ==========================================
 // COURSE CONTROLLERS
 // ==========================================
@@ -151,7 +151,7 @@ export const getCourseLecture = async (req, res) => {
 export const editLecture = async (req, res) => {
     try {
         const { lectureId } = req.params;
-        const { isPreviewFree, lectureTitle } = req.body;
+        const { isPreviewFree, lectureTitle, courseId } = req.body;
 
         console.log(`📝 Edit Lecture - ID: ${lectureId}`);
         console.log('📂 Request Body:', req.body);
@@ -203,6 +203,7 @@ export const editLecture = async (req, res) => {
             if (notesUrl) {
                 lecture.notesUrl = notesUrl;
                 console.log("✅ Notes updated");
+                await indexLectureNotes(lecture._id, courseId);
             }
         }
 
