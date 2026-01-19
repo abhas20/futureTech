@@ -56,6 +56,7 @@ function EditLecture() {
       const formData = new FormData();
       formData.append("lectureTitle", lectureTitle);
       formData.append("isPreviewFree", isPreviewFree.toString());
+      formData.append("courseId", courseId);
       if (videoFile) formData.append("videoUrl", videoFile);
       if (notesFile) formData.append("notesUrl", notesFile);
 
