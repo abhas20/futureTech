@@ -11,7 +11,7 @@ import { FaLock, FaPlayCircle } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import { FaStar } from "react-icons/fa6";
 import CourseChat from "../components/CourseChat";
-
+import CourseAIChat from "../components/CourseAIChat";
 function ViewCourse() {
 
   const { courseId } = useParams();
@@ -347,7 +347,7 @@ function ViewCourse() {
           <CourseChat courseId={courseId} user={userData} />
         </div>
       )}
-
+      {isEnrolled && <CourseAIChat courseId={courseId} />}
       {/* INSTRUCTOR */}
       <section className="bg-white rounded-3xl p-8 shadow-lg">
         <div className="flex items-center gap-6">

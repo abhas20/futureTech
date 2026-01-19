@@ -17,7 +17,7 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 import http from "http";
 import { initSocket } from "./socket.js";
 import chatRoutes from "./routes/chatRoutes.js";
-
+import aiChatRoute from "./routes/aiChatRoute.js";
 
 dotenv.config()
 
@@ -40,6 +40,7 @@ app.use("/api/divide", uploadRouter)
 app.use("/api/quiz", quizRouter);
 app.use("/api/chat", chatRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/chatai", aiChatRoute);
 app.get("/" , (req,res)=>{
     res.send("Hello From Server")
 })
