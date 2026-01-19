@@ -17,6 +17,18 @@ const questionSchema = new mongoose.Schema({
     min: 0,
     max: 3,
   },
+  explanation:{
+    type: String,
+  },
+
+  attemptCount: {
+    type: Number,
+    default: 0,
+  },
+  correctCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 /* Quiz schema */
@@ -51,6 +63,18 @@ const quizSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+
+    totalAttempts: {
+      type: Number,
+      default: 0,
+    },
+    totalScoreSum: {
+      type: Number,
+    },
+    highestScore: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
