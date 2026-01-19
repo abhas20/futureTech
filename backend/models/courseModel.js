@@ -25,6 +25,10 @@ const courseSchema = new mongoose.Schema({
     thumbnail: {
         type: String
     },
+    liveSchedule: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "LiveLecture"
+    }],
     enrolledStudents: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
@@ -45,6 +49,7 @@ const courseSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    enrolledStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review'

@@ -19,6 +19,10 @@ import { initSocket } from "./socket.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import aiChatRoute from "./routes/aiChatRoute.js";
 
+
+import liveRouter from "./routes/liveRoutes.js"; 
+
+
 dotenv.config()
 
 let port = process.env.PORT
@@ -41,6 +45,11 @@ app.use("/api/quiz", quizRouter);
 app.use("/api/chat", chatRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/chatai", aiChatRoute);
+
+
+app.use("/api/live", liveRouter);
+
+
 app.get("/" , (req,res)=>{
     res.send("Hello From Server")
 })
