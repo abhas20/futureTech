@@ -1,14 +1,8 @@
-import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export const embedText = async (text) => {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: text,
-  });
-
-  return response.data[0].embedding;
-};
+export function embedText(text) {
+  const vector = new Array(384).fill(0);
+  for (let i = 0; i < text.length; i++) {
+    vector[i % 384] += text.charCodeAt(i) / 255;
+  }
+  return vector;
+}

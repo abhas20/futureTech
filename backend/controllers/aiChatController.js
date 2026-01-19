@@ -1,55 +1,69 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { isOllamaRunning, askOllama } from "../utils/ollamaClient.js";
+import AICourseChat from "../models/AICourseChat.js";
 import AIEmbedding from "../models/AIEmbedding.js";
-
-// Corrected: The constructor usually only takes the API key string
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const askCourseAI = async (req, res) => {
   try {
     const { question, courseId } = req.body;
+    const userId = req.userId;
 
-    // 1️⃣ Fetch indexed lecture chunks
-    const chunks = await AIEmbedding.find({ courseId }).limit(30);
-    
-    // Safety check: if no notes are found
-    if (!chunks || chunks.length === 0) {
-        return res.json({ answer: "This course has no notes indexed yet." });
+    // 1️⃣ Check Ollama ONLY when user asks
+    const ollamaOk = await isOllamaRunning();
+
+    if (!ollamaOk) {
+      return res.json({
+        answer:
+          "🤖 AI is currently unavailable on this server. Please try again later.",
+      });
     }
 
-    const context = chunks.map(c => c.chunk).join("\n");
+    // 2️⃣ Fetch relevant chunks (your existing logic)
+    const chunks = await AIEmbedding.find({ courseId }).limit(5);
 
-    // 2️⃣ Initialize model (Updated to latest stable version)
-    // Adding the apiVersion here inside the model options if supported by your SDK version
-    const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.0-flash", // Use 2.0 or 2.5-flash-lite
-    });
+    if (!chunks.length) {
+      return res.json({
+        answer: "This course has no notes indexed yet.",
+      });
+    }
+
+    const context = chunks.map(c => c.chunk).join("\n\n");
 
     const prompt = `
-You are an AI tutor for this course.
-Answer ONLY using the provided notes.
-If not found, say: "This topic is not covered yet."
+You are a course tutor.
+Use ONLY the context below to answer.
 
-COURSE NOTES:
+Context:
 ${context}
 
-QUESTION:
+Question:
 ${question}
 `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // 3️⃣ Ask Ollama
+    const answer = await askOllama(prompt);
+
+    // 4️⃣ Save chat (per-user memory)
+    await AICourseChat.findOneAndUpdate(
+      { courseId, userId },
+      {
+        $push: {
+          messages: [
+            { role: "user", content: question },
+            { role: "assistant", content: answer },
+          ],
+        },
+      },
+      { upsert: true }
+    );
+
+    res.json({ answer });
+
+  } catch (err) {
+    console.error("AI Chat Error:", err.message);
 
     res.json({
-      answer: text,
-    });
-
-  } catch (error) {
-    console.error("Gemini error:", error);
-    // Log more specific error info if available
-    res.status(500).json({ 
-        message: "AI failed", 
-        error: error.message 
+      answer:
+        "⚠️ AI encountered an issue. Please try again later.",
     });
   }
 };
