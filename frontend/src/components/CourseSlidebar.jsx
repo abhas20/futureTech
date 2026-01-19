@@ -10,6 +10,7 @@ function CourseSidebar({
   setActiveUnit,
   courseCreator,
 }) {
+
   return (
     <div className="flex flex-col gap-6 sticky top-24">
       {/* Instructor Info */}
@@ -69,7 +70,11 @@ function CourseSidebar({
               return (
                 <button
                   key={lecture._id}
-                  onClick={() => setActiveUnit(lecture)}
+                  onClick={() =>{ 
+                    setActiveUnit(lecture);
+                    window.dispatchEvent(
+                    new CustomEvent("lectureSelected", { detail: lecture }),
+                  );}}
                   className={`w-full text-left p-3 rounded-xl transition-all group flex items-start gap-3 ${
                     isActive
                       ? "bg-indigo-600 text-white shadow-md"

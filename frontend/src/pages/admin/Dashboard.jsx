@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   BarChart,
@@ -16,12 +16,36 @@ import img from "../../assets/empty.jpg";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { motion } from "framer-motion";
+import QuizAnalysis from "../../components/QuizAnalysis";
+import axios from "axios";
+import { serverUrl } from "../../App";
 
 function Dashboard() {
   const navigate = useNavigate();
   const { userData } = useSelector((state) => state.user);
   const { creatorCourseData } = useSelector((state) => state.course);
   console.log(creatorCourseData)
+
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`${serverUrl}/api/quiz/teacher/analytics`, {
+          withCredentials: true,
+        });
+        if (res.data.success) {
+          setData(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching teacher stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const courseProgressData =
     creatorCourseData?.map((course) => ({
@@ -54,7 +78,7 @@ function Dashboard() {
 
      // Pie chart data
      const pieData = [
-       { name: "Students", value: totalStudents || 0 },
+       { name: "Students Enrollled", value: totalStudents || 0 },
        { name: "Avg Lectures", value: avgLectures || 0 },
        { name: "Total Lectures", value: totalLectures || 0 },
      ];
@@ -227,6 +251,18 @@ function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
       </div>
+
+      {
+        loading  ? (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white"></div>
+            <p>Loadind...</p>
+          </div>
+        )
+        :
+        <QuizAnalysis loading={loading} data={data} />
+      }
+
     </motion.div>
   );
 }
