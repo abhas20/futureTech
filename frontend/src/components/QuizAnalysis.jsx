@@ -37,6 +37,9 @@ function QuizAnalysis({loading, data}) {
                 <th className="p-4 font-semibold text-center">Highest Score</th>
               </tr>
             </thead>
+
+            
+
             <tbody className="divide-y divide-gray-100">
               {data.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50 transition">
@@ -99,10 +102,13 @@ function QuizAnalysis({loading, data}) {
               )}
             </tbody>
           </table>
+          
         </div>
       </div>
     </div>
   );
 }
 
+
 export default QuizAnalysis;
+

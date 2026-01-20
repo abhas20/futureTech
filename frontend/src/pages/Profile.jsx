@@ -86,7 +86,7 @@ function Profile() {
             }}
             whileTap={{ scale: 0.95 }}
             className="absolute top-6 left-6 z-50 p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-white transition-all shadow-xl"
-            onClick={() => navigate("/dashboard")} // Redirects to Dashboard
+            onClick={() => navigate("/")} // Redirects to Dashboard
           >
             <FaArrowLeft />
           </motion.button>

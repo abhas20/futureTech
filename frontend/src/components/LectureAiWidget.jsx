@@ -200,4 +200,6 @@ const LectureAIWidget = ({ lectureId }) => {
   );
 };
 
+
+
 export default LectureAIWidget;
