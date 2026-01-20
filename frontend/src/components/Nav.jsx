@@ -187,6 +187,12 @@ function Nav() {
               onClick={() => navigate("/dashboard")}
             />
           )}
+          {userData?.role === "student" && (
+            <MobileItem
+            text="Dashboard"
+            onClick={()=>navigate("/studentdashboard")}
+            />
+          )}
 
           {!userData ? (
             <MobileItem text="Login" onClick={() => navigate("/login")} />

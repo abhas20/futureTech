@@ -10,7 +10,8 @@ import {
   uploadRecording,
   updateRecording,
   uploadNotes,
-  deleteNotes
+  deleteNotes,
+  downloadNotes
 } from "../controllers/liveController.js";
 import isAuth from "../middlewares/isAuth.js";
 
@@ -49,5 +50,6 @@ router.post("/update-recording", upload.single('video'), updateRecording);
 // Notes routes
 router.post("/upload-notes", uploadNotesMulter.single('notes'), uploadNotes);
 router.post("/delete-notes", deleteNotes);
+router.get("/download-notes/:meetingId", downloadNotes);
 
 export default router;

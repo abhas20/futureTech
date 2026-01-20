@@ -5,6 +5,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import dotenv from "dotenv";
 import fs from 'fs';
 import path from 'path';
+import axios from "axios";
 dotenv.config();
 
 // Configure Cloudinary
@@ -440,6 +441,57 @@ export const uploadNotes = async (req, res) => {
       success: false, 
       message: error.message 
     });
+  }
+};
+
+// === DOWNLOAD NOTES FUNCTION ===
+
+export const downloadNotes = async (req, res) => {
+  try {
+    const { meetingId } = req.params;
+    const lecture = await LiveLecture.findOne({ meetingId });
+
+    if (!lecture || !lecture.notes || !lecture.notes.url) {
+      return res.status(404).json({
+        success: false,
+        message: "Notes not found",
+      });
+    }
+
+    console.log(`[Download Notes] Processing for: ${meetingId}`);
+
+    const fileUrl = lecture.notes.url;
+
+    const response = await axios({
+      method: "GET",
+      url: fileUrl,
+      responseType: "stream",
+    });
+
+    let baseName = lecture.notes.name || "Lecture_Notes";
+
+    baseName = baseName.replace(/[^a-zA-Z0-9-_ ]/g, "").trim();
+
+
+    const finalFileName = `${baseName}.pdf`;
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${finalFileName}"; filename*=UTF-8''${encodeURIComponent(finalFileName)}`,
+    );
+    res.setHeader("Content-Type", "application/pdf");
+
+    response.data.pipe(res);
+  } 
+  catch (error) {
+    console.error(`[Download Notes Error]:`, error.message);
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to download notes",
+      });
+    }
   }
 };
 
