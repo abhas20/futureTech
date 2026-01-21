@@ -480,6 +480,7 @@ export const uploadNotes = async (req, res) => {
 };
 
 // === DOWNLOAD NOTES FUNCTION ===
+// === DOWNLOAD NOTES FUNCTION ===
 export const downloadNotes = async (req, res) => {
   try {
     const { meetingId } = req.params;
@@ -495,46 +496,59 @@ export const downloadNotes = async (req, res) => {
     console.log(`[Download Notes] Processing for: ${meetingId}`);
 
     const fileUrl = lecture.notes.url;
+    const fileName = lecture.notes.name || "Lecture_Notes";
     
-    // If it's a Cloudinary URL, we can add flags to force download
+    // Ensure the filename has .pdf extension
+    let finalFileName = fileName;
+    if (!finalFileName.toLowerCase().endsWith('.pdf')) {
+      finalFileName = `${finalFileName}.pdf`;
+    }
+    
+    // Sanitize filename
+    finalFileName = finalFileName.replace(/[^a-zA-Z0-9-_. ]/g, "").trim();
+
+    // If it's a Cloudinary URL
     if (fileUrl.includes('cloudinary.com')) {
-      // For PDF files on Cloudinary, add the 'fl_attachment' flag to force download
-      let downloadUrl = fileUrl;
-      
-      // Check if it's already a transformed URL
-      if (!fileUrl.includes('/fl_attachment')) {
-        // Insert the flag before the filename
-        const parts = fileUrl.split('/upload/');
-        if (parts.length === 2) {
-          downloadUrl = `${parts[0]}/upload/fl_attachment/${parts[1]}`;
+      try {
+        // Get the file from Cloudinary as a buffer
+        const response = await axios({
+          method: "GET",
+          url: fileUrl,
+          responseType: "arraybuffer", // Use arraybuffer for binary data
+        });
+
+        // Set proper headers for PDF download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${finalFileName}"`);
+        res.setHeader('Content-Length', response.data.length);
+        
+        // Send the PDF file
+        res.send(response.data);
+
+      } catch (error) {
+        console.error(`[Download Notes Cloudinary Error]:`, error.message);
+        // Fallback: redirect to Cloudinary URL with attachment flag
+        let downloadUrl = fileUrl;
+        if (!fileUrl.includes('/fl_attachment')) {
+          const parts = fileUrl.split('/upload/');
+          if (parts.length === 2) {
+            downloadUrl = `${parts[0]}/upload/fl_attachment:${finalFileName}/${parts[1]}`;
+          }
         }
+        return res.redirect(downloadUrl);
       }
-      
-      // Redirect to Cloudinary URL with attachment flag
-      return res.redirect(downloadUrl);
     } else {
-      // For non-Cloudinary URLs, use the proxy method
+      // For non-Cloudinary URLs
       const response = await axios({
         method: "GET",
         url: fileUrl,
         responseType: "stream",
       });
 
-      // Get filename from notes or use a default
-      let fileName = lecture.notes.name || "Lecture_Notes";
-      
-      // Ensure filename has .pdf extension
-      if (!fileName.toLowerCase().endsWith('.pdf')) {
-        fileName += '.pdf';
-      }
-
-      // Sanitize filename
-      fileName = fileName.replace(/[^a-zA-Z0-9-_. ]/g, "").trim();
-
       // Set headers for PDF download
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${fileName}"`
+        `attachment; filename="${finalFileName}"`
       );
       res.setHeader("Content-Type", "application/pdf");
 
@@ -544,11 +558,6 @@ export const downloadNotes = async (req, res) => {
     console.error(`[Download Notes Error]:`, error.message);
 
     if (!res.headersSent) {
-      // Try direct redirect as fallback
-      if (lecture?.notes?.url) {
-        return res.redirect(lecture.notes.url);
-      }
-      
       res.status(500).json({
         success: false,
         message: "Failed to download notes",
@@ -556,7 +565,6 @@ export const downloadNotes = async (req, res) => {
     }
   }
 };
-
 // === DELETE NOTES FUNCTION ===
 export const deleteNotes = async (req, res) => {
   try {
