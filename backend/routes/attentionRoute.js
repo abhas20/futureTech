@@ -4,9 +4,12 @@ import axios from "axios";
 import FormData from "form-data";
 import { pushSignal, getAttention } from "../utils/attentionBuffer.js";
 import isAuth from "../middlewares/isAuth.js";
+import dotenv from "dotenv"
+dotenv.config();
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
 
 router.post(
   "/frame",
@@ -38,13 +41,14 @@ router.post(
       });
 
       const { data } = await axios.post(
-        "http://127.0.0.1:7001/analyze",
-        form,
-        {
-          headers: form.getHeaders(),
-          timeout: 5000,
-        }
-      );
+  `${process.env.ATTENTION_URL}/analyze`,
+  form,
+  {
+    headers: form.getHeaders(),
+    timeout: 5000
+  }
+);
+
 
       // 🔥 PER-VIDEO KEY (IMPORTANT)
       const key = `${userId}:${lectureId}`;
