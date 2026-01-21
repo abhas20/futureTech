@@ -30,6 +30,7 @@ export default function LiveClassDashboard() {
   const [selectedLecture, setSelectedLecture] = useState(null);
   const [videoFile, setVideoFile] = useState(null);
   const [notesFile, setNotesFile] = useState(null);
+  const [downloadLoading, setDownloadLoading] = useState({ video: false, notes: false });
 
   // Key to force reset file inputs
   const [inputKey, setInputKey] = useState(Date.now());
@@ -204,18 +205,25 @@ export default function LiveClassDashboard() {
     }
   };
 
-  const handleDownloadNotes = (lecture) => {
+ const handleDownloadNotes = async (url, type, filename) => {
+    if (!url) return toast.error(`No ${type} available`);
+    setDownloadLoading((p) => ({ ...p, [type]: true }));
     try {
-      // This works because the backend sets Content-Disposition: attachment
-      const downloadUrl = `${serverUrl}/api/live/download-notes/${lecture.meetingId}`;
-      window.location.href = downloadUrl;
-    } catch (error) {
-      console.error("Download failed:", error);
-      toast.error("Download failed. Please try again.");
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    } catch {
+      toast.error("Download failed");
+    } finally {
+      setDownloadLoading((p) => ({ ...p, [type]: false }));
     }
   };
 
-  const handleDeleteNotes = async (meetingId) => {
+
+const handleDeleteNotes = async (meetingId) => {
     if (!window.confirm("Are you sure you want to delete the notes?")) return;
 
     try {
@@ -279,6 +287,7 @@ export default function LiveClassDashboard() {
       minute: "2-digit",
     });
   };
+  console.log(lectures)
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10 font-sans">
@@ -568,9 +577,8 @@ export default function LiveClassDashboard() {
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              {/* FIX IS HERE: Arrow Function */}
                               <button
-                                onClick={() => handleDownloadNotes(lecture)}
+                                onClick={() => handleDownloadNotes( lecture.notes.url, "notes", lecture.notes.name)}
                                 className="text-green-700 hover:text-green-900 p-1">
                                 <FaDownload />
                               </button>

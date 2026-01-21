@@ -63,8 +63,16 @@ function Login() {
       toast.success("Welcome Back!");
     } catch (error) {
       console.log(error);
-      toast.error(error.response?.data?.message || "Google Sign-in Failed");
+
+      if (error.code === "auth/popup-closed-by-user") {
+        toast.info("Popup closed before completing sign-in");
+      } else if (error.code === "auth/popup-blocked") {
+        toast.error("Popup blocked by browser");
+      } else {
+        toast.error("Google Sign-in Failed");
+      }
     }
+
   };
 
   return (
