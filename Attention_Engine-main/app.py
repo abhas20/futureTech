@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import numpy as np
 import cv2
+import os
 from attention import analyze_frame
 
 app = Flask(__name__)
@@ -34,9 +35,10 @@ def analyze():
         result = analyze_frame(frame)
         return jsonify(result)
     except Exception as e:
-        print("🔥 ANALYZE ERROR:", e)
+        print("ANALYZE ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=7001)
+    port = int(os.environ.get("PORT", 7001))
+    app.run(host="0.0.0.0", port=port)
