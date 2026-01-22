@@ -187,8 +187,8 @@ Make sure you create `.env` files for backend and frontend as required.
 
 **Do not commit `.env` files or secrets to version control.**
 
----
 
+---
 ## 📈 Scalability & Extensibility
 
 * Microservice‑friendly architecture — AI layer and Attention Engine scale independently
