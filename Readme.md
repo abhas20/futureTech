@@ -20,7 +20,7 @@ LMS by TLE Terminator is a modern web platform that enables:
 * Quizzes and assessments
 * Community chat & discussion
 * AI‑powered doubt resolution
-* Attention tracking engine (optional integration)
+* Attention tracking engine
 
 The platform aims to bridge the gap between teaching plans and classroom execution, especially for resource‑constrained or large‑scale education systems.
 
@@ -70,9 +70,9 @@ The platform aims to bridge the gap between teaching plans and classroom executi
 * Course‑aware AI assistant that answers doubts using lecture context
 * Embedding‑based retrieval from course materials
 * Independent chat history per student
-* Pluggable to local LLMs (e.g., Ollama) or API models
+* Pluggable to local LLMs (here we used Ollama) or API models
 
-### 🧠 AI Summary Generator (New Feature)
+### 🧠 AI Summary Generator 
 
 The **AI Summary Generator** automatically creates **concise, structured summaries per lecture** by processing the **audio of the lecture**.
 
@@ -143,28 +143,30 @@ cd lms-by-tle-terminator
 
 ```bash
 cd backend
+cp .env.example .env # Create your own .env and add required secrets
 npm install
 npm run dev
 ```
 
-> backend typically runs on a port like `5000` or `5001` depending on configuration.
+> backend will typically runs on port `8000` depending on configuration.
 
 ### 3. Frontend setup
 
 ```bash
 cd ../frontend
+cp .env.example .env # Create your own .env and add required secrets
 npm install
 npm run dev
 ```
 
-> frontend dev server typically runs on `localhost:3000` or as specified by Vite.
+> frontend dev server typically runs on `localhost:5173` or as specified by Vite.
 
-### 4. (Optional) Attention Engine
+### 4. Attention Engine (Optional setup for focusing monitoring)
 
 ```bash
 cd Attention_Engine
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv venv # On Windows use `python -m venv venv`
+source venv/bin/activate # On Windows use `venv\Scripts\activate`
 
 cd ../attention_engine
 pip install -r requirements.txt
@@ -177,23 +179,24 @@ python app.py
 
 ## 🔐 Environment Variables
 
-Create `.env` files for backend and microservices as required.
+Make sure you create `.env` files for backend and frontend as required.
 
-Example `.env` keys (backend):
+- .env.example files are provided as templates.
+- Fill in your own API keys, database URIs, and secrets.
 
-```
-MONGO_URI=your_mongodb_uri
-JWT_SECRET=your_secret
-CLOUDINARY_API_KEY=xxxx
-CLOUDINARY_API_SECRET=xxxx
-CLOUDINARY_CLOUD_NAME=xxxx
-ATTENTION_ENGINE_URL=http://localhost:7001
-```
 
 **Do not commit `.env` files or secrets to version control.**
 
 ---
 
+## 🤖 Olama AI Setup
+
+1. Install Ollama from https://ollama.com/
+2. Download a local model
+3. Pull ollama model `ollama pull phi3:mini`
+4. Run the Ollama: `ollama run phi3:mini`
+
+---
 ## 📈 Scalability & Extensibility
 
 * Microservice‑friendly architecture — AI layer and Attention Engine scale independently
@@ -242,12 +245,36 @@ Please follow the existing code style (ESLint/Prettier if configured) and includ
 
 ---
 
-## 👥 Team Members
+## 👨‍💻 Team Members (Contributors)
 
-1. [Prasson Patel](https://github.com/Prasoon52)
-2. [Abhinav Neema](https://github.com/AbhinavNeema)
-3. [Pranav](https://github.com/pranavpanmand)
-4. [Abhas Nath](https://github.com/abhas20)
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Prasoon52">
+        <img src="https://github.com/Prasoon52.png" width="100" style="border-radius:50%" /><br />
+        <b>Prasson Patel</b>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/AbhinavNeema">
+        <img src="https://github.com/AbhinavNeema.png" width="100" style="border-radius:50%" /><br />
+        <b>Abhinav Neema</b>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/pranavpanmand">
+        <img src="https://github.com/pranavpanmand.png" width="100" style="border-radius:50%" /><br />
+        <b>Pranav</b>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/abhas20">
+        <img src="https://github.com/abhas20.png" width="100" style="border-radius:50%" /><br />
+        <b>Abhas Nath</b>
+      </a>
+    </td>
+  </tr>
+</table>
 
 
 ---
