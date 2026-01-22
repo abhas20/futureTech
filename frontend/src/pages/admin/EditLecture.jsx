@@ -361,8 +361,22 @@ function EditLecture() {
       formData.append("lectureTitle", lectureTitle);
       formData.append("isPreviewFree", isPreviewFree.toString());
       formData.append("courseId", courseId);
-      if (videoFile) formData.append("videoUrl", videoFile);
-      if (notesFile) formData.append("notesUrl", notesFile);
+      if (videoFile) {
+        if(videoFile.size > 40 * 1024 * 1024) { 
+          toast.error("Video file size exceeds 40MB limit");
+          setLoading(false);
+          return;
+        }
+        formData.append("videoUrl", videoFile);
+      }
+      if (notesFile) {
+        if(notesFile.size > 30 * 1024 * 1024) { 
+          toast.error("Notes file size exceeds 30MB limit");
+          setLoading(false);
+          return;
+        }
+        formData.append("notesUrl", notesFile);
+      }
 
       const result = await axios.post(
         serverUrl + `/api/course/editlecture/${lectureId}`,
@@ -378,7 +392,7 @@ function EditLecture() {
       toast.success("Lecture Updated Successfully");
       navigate(`/createlecture/${courseId}`);
     } catch {
-      toast.error("Update Failed");
+      toast.error("File size too large or Update Failed");
     }
     setLoading(false);
   };

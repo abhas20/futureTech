@@ -187,14 +187,6 @@ Make sure you create `.env` files for backend and frontend as required.
 
 **Do not commit `.env` files or secrets to version control.**
 
----
-
-## 🤖 Olama AI Setup
-
-1. Install Ollama from https://ollama.com/
-2. Download a local model
-3. Pull ollama model `ollama pull phi3:mini`
-4. Run the Ollama: `ollama run phi3:mini`
 
 ---
 ## 📈 Scalability & Extensibility
