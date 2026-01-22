@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 import { serverUrl } from "../App";
 import { FaRobot, FaPaperPlane, FaMagic } from "react-icons/fa";
 
@@ -7,22 +8,20 @@ const LectureAIWidget = ({ lectureId }) => {
   const [activeTab, setActiveTab] = useState("summary");
   const [summary, setSummary] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Chat State
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Auto-scroll chat
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, activeTab]);
 
   const fetchSummary = async () => {
     try {
-      setSummary(""); // 1. Clear old data immediately so UI doesn't show stale text
-      setLoading(true); // 2. Show loader
+      setSummary("");
+      setLoading(true);
 
       const { data } = await axios.post(
         `${serverUrl}/api/summary/generate-summary`,
@@ -38,14 +37,9 @@ const LectureAIWidget = ({ lectureId }) => {
     }
   };
 
-  // --- THE FIX ---
-  // Re-run this effect whenever 'lectureId' changes OR 'activeTab' changes
   useEffect(() => {
-    // 1. Reset chat history when switching lectures
     setMessages([]);
     setQuestion("");
-
-    // 2. Fetch summary if we are on the summary tab
     if (activeTab === "summary") {
       fetchSummary();
     }
@@ -61,12 +55,16 @@ const LectureAIWidget = ({ lectureId }) => {
     setAsking(true);
 
     try {
-      const { data } = await axios.post(`${serverUrl}/api/summary/askdoubt`, {
-        lectureId,
-        question: userMsg.text,
-      },{
-        withCredentials:true
-      });
+      const { data } = await axios.post(
+        `${serverUrl}/api/summary/askdoubt`,
+        {
+          lectureId,
+          question: userMsg.text,
+        },
+        {
+          withCredentials: true,
+        },
+      );
       setMessages((prev) => [...prev, { role: "ai", text: data.answer }]);
     } catch (err) {
       setMessages((prev) => [
@@ -80,7 +78,7 @@ const LectureAIWidget = ({ lectureId }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col overflow-hidden">
-      {/* Header / Tabs */}
+      {/* Header */}
       <div className="flex border-b border-gray-100">
         <button
           onClick={() => setActiveTab("summary")}
@@ -115,11 +113,11 @@ const LectureAIWidget = ({ lectureId }) => {
                 </p>
               </div>
             ) : (
-              <div className="prose prose-sm prose-indigo max-w-none text-gray-700">
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-gray-700">
                 {summary ? (
-                  <p className="whitespace-pre-wrap leading-relaxed">
-                    {summary}
-                  </p>
+                  <div className="ai-markdown">
+                    <ReactMarkdown>{summary}</ReactMarkdown>
+                  </div>
                 ) : (
                   <div className="text-center py-10">
                     <p className="text-gray-400 text-sm mb-3">
@@ -149,6 +147,7 @@ const LectureAIWidget = ({ lectureId }) => {
                   </p>
                 </div>
               )}
+
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -161,10 +160,18 @@ const LectureAIWidget = ({ lectureId }) => {
                         ? "bg-indigo-600 text-white rounded-br-none"
                         : "bg-white border border-gray-200 text-gray-700 rounded-bl-none"
                     }`}>
-                    {msg.text}
+                    {/* --- THE FIX --- */}
+                    {/* We apply 'user-markdown' or 'ai-markdown' based on role */}
+                    <div
+                      className={
+                        msg.role === "user" ? "user-markdown" : "ai-markdown"
+                      }>
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               ))}
+
               {asking && (
                 <div className="flex justify-start">
                   <div className="bg-gray-100 rounded-2xl px-4 py-3 rounded-bl-none flex gap-1">
@@ -198,7 +205,5 @@ const LectureAIWidget = ({ lectureId }) => {
     </div>
   );
 };
-
-
 
 export default LectureAIWidget;

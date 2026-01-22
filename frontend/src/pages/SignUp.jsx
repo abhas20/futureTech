@@ -60,23 +60,19 @@ function SignUp() {
 
   // --- Google Sign Up Logic ---
 
-  // 1. Triggered when user clicks the main Google Button
   const initiateGoogleSignUp = () => {
     setShowGoogleModal(true);
   };
 
-  // 2. Triggered when user selects a role in the modal
   const confirmGoogleSignUp = async (selectedRole) => {
     setShowGoogleModal(false); // Close modal
 
     try {
-      // Trigger Google Popup
       const response = await signInWithPopup(auth, provider);
       let user = response.user;
       let name = user.displayName;
       let email = user.email;
 
-      // Send the SELECTED role, not the state role (to avoid stale state issues)
       const result = await axios.post(
         serverUrl + "/api/auth/googlesignup",
         { name, email, role: selectedRole },

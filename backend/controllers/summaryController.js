@@ -65,7 +65,7 @@ async function getOrGenerateTranscription(lecture) {
 
   lecture.summary = transcriptionResult;
   await lecture.save();
-  await indexLectureSummary(lecture._id);
+  // await indexLectureSummary(lecture._id);
 
 
   return transcriptionResult;
@@ -89,7 +89,11 @@ export async function generateSummary(req, res) {
     if (error.message === "Audio not available for this lecture") {
       return res.status(400).json({ message: error.message });
     }
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message, 
+      stack: error.stack, 
+    });
   }
 }
 

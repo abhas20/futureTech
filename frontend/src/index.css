@@ -6,3 +6,77 @@
    
 }
 
+/* App.css or index.css */
+
+/* Container for AI responses */
+.ai-markdown {
+   font-size: 0.95rem;
+   line-height: 1.6;
+}
+
+.ai-markdown p {
+   margin-bottom: 0.75rem;
+}
+
+.ai-markdown p:last-child {
+   margin-bottom: 0;
+}
+
+.ai-markdown strong {
+   font-weight: 700;
+   color: #111827;
+   /* Dark gray for emphasis */
+}
+
+.ai-markdown ul {
+   list-style-type: disc;
+   padding-left: 1.5rem;
+   margin-bottom: 0.75rem;
+}
+
+.ai-markdown ol {
+   list-style-type: decimal;
+   padding-left: 1.5rem;
+   margin-bottom: 0.75rem;
+}
+
+.ai-markdown li {
+   margin-bottom: 0.25rem;
+}
+
+.ai-markdown code {
+   background-color: #f3f4f6;
+   padding: 0.2rem 0.4rem;
+   border-radius: 0.25rem;
+   font-family: monospace;
+   font-size: 0.85em;
+   color: #c026d3;
+   /* Purple-ish for code inline */
+}
+
+.ai-markdown pre {
+   background-color: #1f2937;
+   color: #f9fafb;
+   padding: 1rem;
+   border-radius: 0.5rem;
+   overflow-x: auto;
+   margin-bottom: 1rem;
+}
+
+.ai-markdown pre code {
+   background-color: transparent;
+   color: inherit;
+   padding: 0;
+}
+
+/* --- User Message Overrides (Dark Background) --- */
+.user-markdown p,
+.user-markdown strong,
+.user-markdown li {
+   color: white !important;
+}
+
+.user-markdown code {
+   background-color: rgba(255, 255, 255, 0.2);
+   color: white;
+}
