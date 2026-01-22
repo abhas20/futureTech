@@ -24,7 +24,7 @@ const aiEmbeddingSchema = new mongoose.Schema(
     source: {
       type: String,
       enum: ["notes", "summary"],
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }

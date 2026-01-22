@@ -2,36 +2,53 @@ import AIEmbedding from "../models/AIEmbedding.js";
 import AICourseChat from "../models/AICourseChat.js";
 import { embedText } from "../utils/embeddings.js";
 import { cosineSimilarity } from "../utils/similarity.js";
-import { askOllama } from "../utils/ollama.js";
+import { askGroq } from "../utils/groq.js";
+
+const SIMILARITY_THRESHOLD = 0.78;
 
 export const askCourseAI = async (req, res) => {
   try {
     const { question, courseId } = req.body;
     const userId = req.userId;
 
-    const qEmbedding = await embedText(question);
-
-    const docs = await AIEmbedding.find({ courseId });
-    if (!docs.length) {
-      return res.json({
-        answer: "This course has no notes indexed yet.",
+    if (!userId) {
+      return res.status(401).json({
+        messages: [{ role: "assistant", content: "Please login to use AI tutor." }],
       });
     }
 
-    const ranked = docs
-      .map(d => ({
-        chunk: d.chunk,
-        score: cosineSimilarity(qEmbedding, d.embedding),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+    if (!question?.trim() || !courseId) {
+      return res.status(400).json({
+        messages: [{ role: "assistant", content: "Invalid question or course." }],
+      });
+    }
 
-    const context = ranked.map(r => r.chunk).join("\n\n");
+    const qEmbedding = await embedText(question);
 
-    const prompt = `
+    const docs = await AIEmbedding.find({ courseId });
+
+    let prompt = "";
+
+    if (docs.length) {
+      const ranked = docs
+        .map(d => ({
+          chunk: d.chunk,
+          score: cosineSimilarity(qEmbedding, d.embedding),
+        }))
+        .sort((a, b) => b.score - a.score);
+
+      const topMatches = ranked.slice(0, 6);
+      const bestScore = topMatches[0]?.score || 0;
+
+      if (bestScore >= SIMILARITY_THRESHOLD) {
+        const context = topMatches
+          .map(r => r.chunk)
+          .join("\n\n")
+          .slice(0, 6000);
+
+        prompt = `
 You are a course tutor.
-Answer ONLY from the notes below.
-If not found, say: "Not covered in course notes."
+Answer ONLY using the notes below.
 
 NOTES:
 ${context}
@@ -39,9 +56,25 @@ ${context}
 QUESTION:
 ${question}
 `;
+      }
+    }
 
-    const answer = await askOllama(prompt);
+  
+    if (!prompt) {
+      prompt = `
+You are a knowledgeable teaching assistant.
+Answer the question clearly using general knowledge.
+Explain simply.
 
+QUESTION:
+${question}
+`;
+    }
+
+    
+    const answer = await askGroq(prompt);
+
+    
     const chat = await AICourseChat.findOneAndUpdate(
       { courseId, userId },
       {
@@ -55,10 +88,12 @@ ${question}
       { upsert: true, new: true }
     );
 
-    res.json({ messages: chat.messages });
+    return res.json({ messages: chat.messages });
+
   } catch (err) {
-    res.json({
-      answer: "AI is currently unavailable",
+    console.error("AI ERROR:", err);
+    return res.status(500).json({
+      messages: [{ role: "assistant", content: "AI is currently unavailable." }],
     });
   }
 };

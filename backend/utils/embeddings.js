@@ -1,12 +1,21 @@
 import axios from "axios";
 
-const OLLAMA_URL = "http://127.0.0.1:11434";
+const JINA_API_KEY = process.env.JINA_API_KEY;
 
 export async function embedText(text) {
-  const res = await axios.post(`${OLLAMA_URL}/api/embeddings`, {
-    model: "nomic-embed-text",
-    prompt: text,
-  });
+  const response = await axios.post(
+    "https://api.jina.ai/v1/embeddings",
+    {
+      model: "jina-embeddings-v2-base-en",
+      input: text,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${JINA_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
-  return res.data.embedding;
+  return response.data.data[0].embedding;
 }
