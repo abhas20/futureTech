@@ -40,6 +40,19 @@ The platform aims to bridge the gap between teaching plans and classroom executi
 * Low‑latency interaction design
 * Extensible to integrate video conferencing tools
 
+### 👀 Attention Engine
+
+* Computer vision–based microservice for analyzing student attentiveness during live lectures  
+* Processes image frames via API in real time  
+* Computes:
+  * Face presence confidence  
+  * Head pose confidence  
+  * Gaze direction confidence  
+* Aggregates signals into an overall attention score per student  
+* Integrates seamlessly with live lecture sessions  
+* Helps instructors monitor engagement and identify attention drops  
+* Designed as an independent, scalable microservice that can be enabled per course
+
 ### 📝 Quizzes & Assessments
 
 * Create quizzes per course or lecture
@@ -58,12 +71,6 @@ The platform aims to bridge the gap between teaching plans and classroom executi
 * Embedding‑based retrieval from course materials
 * Independent chat history per student
 * Pluggable to local LLMs (e.g., Ollama) or API models
-
-### 👀 Attention Engine (Optional)
-
-* Computer vision–based attention analysis microservice
-* Processes image frames via API and returns head/gaze/face confidence scores
-* Integrates with live lectures to estimate student attentiveness
 
 ### 🧠 AI Summary Generator (New Feature)
 
@@ -235,12 +242,13 @@ Please follow the existing code style (ESLint/Prettier if configured) and includ
 
 ---
 
-## ✅ Contact
+## 👥 Team Members
 
-1. Prasson Patel
-2. Abhinav Neema
-3. Pranav
-4. Abhas Nath
+1. [Prasson Patel](https://github.com/Prasoon52)
+2. [Abhinav Neema](https://github.com/AbhinavNeema)
+3. [Pranav](https://github.com/pranavpanmand)
+4. [Abhas Nath](https://github.com/abhas20)
+
 
 ---
 
