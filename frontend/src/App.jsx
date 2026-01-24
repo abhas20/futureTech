@@ -36,7 +36,7 @@ import LiveRoom from './pages/LiveRoom';
 
 
 export const serverUrl = import.meta.env.VITE_BACKEND || "http://localhost:8000"
-console.log(serverUrl);
+// console.log(serverUrl);
 
 function App() {
   

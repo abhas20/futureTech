@@ -216,13 +216,11 @@ function ViewCourse() {
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="h-20 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50 shadow-2xl"
-      >
+        className="h-20 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-50 shadow-2xl">
         <div className="flex items-center gap-6">
           <button
             onClick={() => navigate("/allcourses")}
-            className="p-3 hover:bg-white/5 rounded-xl transition text-slate-300 hover:text-amber-400 border border-transparent hover:border-white/10"
-          >
+            className="p-3 hover:bg-white/5 rounded-xl transition text-slate-300 hover:text-amber-400 border border-transparent hover:border-white/10">
             <FaArrowLeft />
           </button>
           <div className="flex flex-col">
@@ -272,9 +270,8 @@ function ViewCourse() {
 
           {/* Mobile Menu Toggle */}
           <button
-            className="md:hidden text-slate-300 text-xl ml-2 hover:text-white"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
+            className="lg:hidden text-slate-300 text-xl ml-2 hover:text-white"
+            onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
@@ -294,8 +291,7 @@ function ViewCourse() {
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
-                className="w-full h-full"
-              >
+                className="w-full h-full">
                 {activeTab === "lectures" && activeUnit ? (
                   <LectureViewForUser
                     lecture={activeUnit}
@@ -317,8 +313,8 @@ function ViewCourse() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Sidebar (Desktop) - Light/Glass for Contrast */}
-        <div className="hidden lg:block w-[400px] border-l border-slate-800 bg-slate-900 h-full overflow-y-auto z-40 shadow-2xl">
+        {/* RIGHT COLUMN: Sidebar (Desktop + Tablet) */}
+        <div className="hidden md:block w-[360px] lg:w-[400px] border-l border-slate-800 bg-slate-900 h-full overflow-y-auto z-40 shadow-2xl">
           <CourseSidebar
             lectures={lectures}
             quizzes={quizzes}
@@ -338,8 +334,7 @@ function ViewCourse() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute top-0 right-0 w-full md:w-[400px] h-full bg-slate-900 border-l border-slate-800 z-50 shadow-2xl lg:hidden"
-            >
+              className="absolute top-0 right-0 w-full md:w-[400px] h-full bg-slate-900 border-l border-slate-800 z-50 shadow-2xl lg:hidden">
               <CourseSidebar
                 lectures={lectures}
                 quizzes={quizzes}

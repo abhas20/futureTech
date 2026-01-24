@@ -259,6 +259,8 @@ function Home() {
   const { courseData } = useSelector((state) => state.course);
   const { userData } = useSelector((state) => state.user);
 
+  const stem_url = import.meta.env.STEM_URL || "http://localhost:3000";
+
   const featuredCourses = courseData?.slice(0, 3) || [];
 
   /* ---------------- XP LOGIC ---------------- */
@@ -309,12 +311,10 @@ function Home() {
             initial="hidden"
             animate="visible"
             variants={staggerContainer}
-            className="max-w-4xl"
-          >
+            className="max-w-4xl">
             <motion.div
               variants={fadeInUp}
-              className="flex items-center gap-2 mb-4"
-            >
+              className="flex items-center gap-2 mb-4">
               <span className="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold uppercase tracking-widest backdrop-blur-md">
                 Next-Gen Learning Platform
               </span>
@@ -322,8 +322,7 @@ function Home() {
 
             <motion.h1
               variants={fadeInUp}
-              className="text-5xl md:text-7xl font-black text-white leading-[1.1] mb-6 drop-shadow-lg"
-            >
+              className="text-5xl md:text-7xl font-black text-white leading-[1.1] mb-6 drop-shadow-lg">
               Learn. Compete. <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
                 Dominate.
@@ -332,28 +331,31 @@ function Home() {
 
             <motion.p
               variants={fadeInUp}
-              className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed"
-            >
+              className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
               Ascend the ranks from Novice to Terminator. Master new skills with
               our gamified, AI-powered ecosystem designed for modern achievers.
             </motion.p>
 
             <motion.div
               variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4"
-            >
+              className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => navigate("/allcourses")}
-                className="px-8 py-4 rounded-2xl bg-white text-slate-900 font-bold text-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-xl shadow-white/10 group"
-              >
+                className="px-8 py-4 rounded-2xl bg-white text-slate-900 font-bold text-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-xl shadow-white/10 group">
                 <SiViaplay className="text-blue-600 group-hover:scale-110 transition-transform" />
                 Explore Courses
               </button>
 
               <button
+                onClick={() => navigate(stem_url)}
+                className="px-8 py-4 rounded-2xl bg-yellow-200 text-slate-900 font-bold text-lg hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-xl shadow-white/10 group">
+                <SiViaplay className="text-red-600 group-hover:scale-110 transition-transform" />
+                TryOut STEM Challenges
+              </button>
+
+              <button
                 onClick={() => navigate("/searchwithai")}
-                className="px-8 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-3 group"
-              >
+                className="px-8 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-3 group">
                 <img
                   src={ai}
                   alt="AI"
@@ -374,8 +376,7 @@ function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.7 }}
-            className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] border border-white flex flex-col md:flex-row items-center justify-between gap-8"
-          >
+            className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] border border-white flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Rank Info */}
             <div className="flex items-center gap-6 w-full md:w-auto">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/30 text-white text-3xl">
@@ -450,8 +451,7 @@ function Home() {
                 </p>
                 <button
                   onClick={() => navigate("/allcourses")}
-                  className="w-full py-3 bg-white text-blue-900 font-bold rounded-xl hover:bg-blue-50 transition-colors relative z-10"
-                >
+                  className="w-full py-3 bg-white text-blue-900 font-bold rounded-xl hover:bg-blue-50 transition-colors relative z-10">
                   Start Learning Now
                 </button>
               </div>
@@ -488,8 +488,7 @@ function Home() {
             </div>
             <button
               onClick={() => navigate("/allcourses")}
-              className="px-6 py-3 rounded-full border border-slate-700 text-white hover:bg-white hover:text-slate-900 transition-all font-bold text-sm"
-            >
+              className="px-6 py-3 rounded-full border border-slate-700 text-white hover:bg-white hover:text-slate-900 transition-all font-bold text-sm">
               View Full Catalog
             </button>
           </div>
@@ -501,8 +500,7 @@ function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
+                viewport={{ once: true }}>
                 <Card
                   id={course._id}
                   title={course.title}

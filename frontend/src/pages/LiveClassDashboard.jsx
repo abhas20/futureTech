@@ -279,7 +279,7 @@ export default function LiveClassDashboard() {
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-5 w-full md:w-auto">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/")}
               className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:shadow-md transition-all"
             >
               <FaArrowLeft />
