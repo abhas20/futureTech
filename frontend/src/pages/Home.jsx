@@ -259,7 +259,7 @@ function Home() {
   const { courseData } = useSelector((state) => state.course);
   const { userData } = useSelector((state) => state.user);
 
-  const stem_url = import.meta.env.STEM_URL || "http://localhost:3000";
+  const stem_url = import.meta.env.VITE_STEM_URL || "http://localhost:3000";
 
   const featuredCourses = courseData?.slice(0, 3) || [];
 
